@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Players Gallery</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 42px;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 18px;
+            opacity: 0.9;
+        }
+
+        .action-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            max-width: 800px;
+            margin: 0 auto 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        .action-section h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 24px;
+        }
+
+        .action-section p {
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 16px;
+        }
+
+        .search-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            max-width: 800px;
+            margin: 0 auto 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .search-section h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 24px;
+            text-align: center;
+        }
+
+        .search-box {
+            position: relative;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 16px 50px 16px 50px;
+            border: 2px solid #e0e0e0;
+            border-radius: 50px;
+            font-size: 18px;
+            transition: all 0.3s;
+            background: #f8f9fa;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 20px;
+            color: #999;
+            pointer-events: none;
+        }
+
+        .clear-search {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #999;
+            cursor: pointer;
+            display: none;
+            transition: color 0.3s;
+        }
+
+        .clear-search:hover {
+            color: #dc3545;
+        }
+
+        .clear-search.show {
+            display: block;
+        }
+
+        .search-results-info {
+            text-align: center;
+            margin-top: 15px;
+            color: #666;
+            font-size: 16px;
+        }
+
+        .search-results-info.highlight {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+
+        .no-results-icon {
+            font-size: 60px;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        .no-results h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 22px;
+        }
+
+        .no-results p {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .register-btn {
+            display: inline-block;
+            padding: 15px 35px;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+            border: none;
+            cursor: pointer;
+        }
+
+        .register-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+        }
+
+        .refresh-btn {
+            padding: 15px 35px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .refresh-btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .players-gallery {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .gallery-header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .gallery-header h2 {
+            color: #333;
+            font-size: 28px;
+        }
+
+        .gallery-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .player-count {
+            background: #667eea;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .clear-all-btn {
+            padding: 10px 20px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .clear-all-btn:hover {
+            background: #c82333;
+        }
+
+        .auto-refresh-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 15px;
+            background: white;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .auto-refresh-toggle input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .players-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+            padding: 20px 0;
+        }
+
+        .player-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s, box-shadow 0.3s;
+            position: relative;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .player-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .player-image {
+            width: 180px;
+            height: 180px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 5px solid #667eea;
+            margin: 0 auto 20px;
+            display: block;
+        }
+
+        .player-image-placeholder {
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            border: 5px solid #e0e0e0;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            font-size: 60px;
+            color: #ccc;
+        }
+
+        .player-name {
+            font-size: 22px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+            word-wrap: break-word;
+        }
+
+        .player-type {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            text-transform: capitalize;
+        }
+
+        .type-batter {
+            background: #ffc107;
+            color: #000;
+        }
+
+        .type-bowler {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .type-all-rounder {
+            background: #28a745;
+            color: white;
+        }
+
+        .player-email {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            word-break: break-all;
+        }
+
+        .player-mobile {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .player-mobile-icon,
+        .player-email-icon {
+            font-size: 18px;
+        }
+
+        .player-timestamp {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 15px;
+        }
+
+        .delete-btn {
+            width: 100%;
+            padding: 10px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .delete-btn:hover {
+            background: #c82333;
+        }
+
+        .lock-icon {
+            font-size: 14px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            color: #666;
+        }
+
+        .empty-state-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .empty-state p {
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        .empty-state-btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .empty-state-btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 32px;
+            }
+
+            .gallery-header {
+                flex-direction: column;
+            }
+
+            .players-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .register-btn,
+            .refresh-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>⚽ Players Gallery</h1>
+        <p>View all registered players</p>
+    </div>
+
+    <div class="action-section">
+        <h2>Add New Player</h2>
+        <p>Register a new player to add them to the gallery</p>
+        <div class="action-buttons">
+            <a href="player_registration.html" class="register-btn">
+                ➕ Register New Player
+            </a>
+            <button class="refresh-btn" id="refreshBtn">
+                🔄 Refresh Gallery
+            </button>
+        </div>
+    </div>
+
+    <div class="search-section">
+        <h2>🔍 Find a Player</h2>
+        <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input 
+                type="text" 
+                class="search-input" 
+                id="searchInput" 
+                placeholder="Search by player name..."
+                autocomplete="off"
+            >
+            <button class="clear-search" id="clearSearch">✕</button>
+        </div>
+        <div class="search-results-info" id="searchResultsInfo"></div>
+    </div>
+
+    <div class="players-gallery">
+        <div class="gallery-header" id="galleryHeader">
+            <div>
+                <h2>Team Roster</h2>
+                <span class="player-count" id="playerCount">0 Players</span>
+            </div>
+            <div class="gallery-controls">
+                <div class="auto-refresh-toggle">
+                    <input type="checkbox" id="autoRefresh">
+                    <label for="autoRefresh" style="margin: 0; cursor: pointer;">Auto-refresh (5s)</label>
+                </div>
+                <button class="clear-all-btn" id="clearAllBtn">🔒 Clear All</button>
+            </div>
+        </div>
+
+        <div class="players-grid" id="playersGrid">
+            <div class="empty-state">
+                <div class="empty-state-icon">🏆</div>
+                <h3>No Players Yet</h3>
+                <p>Be the first to register!</p>
+                <a href="player_registration.html" class="empty-state-btn">Register Now</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let players = [];
+        let filteredPlayers = [];
+        let autoRefreshInterval = null;
+        let searchQuery = '';
+
+        const playersGrid = document.getElementById('playersGrid');
+        const galleryHeader = document.getElementById('galleryHeader');
+        const playerCount = document.getElementById('playerCount');
+        const refreshBtn = document.getElementById('refreshBtn');
+        const clearAllBtn = document.getElementById('clearAllBtn');
+        const autoRefreshCheckbox = document.getElementById('autoRefresh');
+        const searchInput = document.getElementById('searchInput');
+        const clearSearch = document.getElementById('clearSearch');
+        const searchResultsInfo = document.getElementById('searchResultsInfo');
+
+        // Load players from localStorage
+        function loadPlayers() {
+            const storedPlayers = localStorage.getItem('teamPlayers');
+            if (storedPlayers) {
+                players = JSON.parse(storedPlayers);
+                // Sort by timestamp (newest first)
+                players.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            } else {
+                players = [];
+            }
+            filterPlayers();
+            renderPlayers();
+        }
+
+        // Filter players based on search query
+        function filterPlayers() {
+            if (searchQuery.trim() === '') {
+                filteredPlayers = [...players];
+            } else {
+                const query = searchQuery.toLowerCase();
+                filteredPlayers = players.filter(player => 
+                    player.name.toLowerCase().includes(query) ||
+                    player.type.toLowerCase().includes(query) ||
+                    (player.email && player.email.toLowerCase().includes(query)) ||
+                    (player.mobile && player.mobile.includes(query))
+                );
+            }
+            updateSearchInfo();
+        }
+
+        // Update search results info
+        function updateSearchInfo() {
+            if (searchQuery.trim() === '') {
+                searchResultsInfo.textContent = '';
+                searchResultsInfo.classList.remove('highlight');
+            } else {
+                searchResultsInfo.textContent = `Found ${filteredPlayers.length} player${filteredPlayers.length !== 1 ? 's' : ''}`;
+                searchResultsInfo.classList.add('highlight');
+            }
+        }
+
+        // Search input event
+        searchInput.addEventListener('input', function() {
+            searchQuery = this.value;
+            
+            if (searchQuery.trim() !== '') {
+                clearSearch.classList.add('show');
+            } else {
+                clearSearch.classList.remove('show');
+            }
+            
+            filterPlayers();
+            renderPlayers();
+        });
+
+        // Clear search button
+        clearSearch.addEventListener('click', function() {
+            searchInput.value = '';
+            searchQuery = '';
+            clearSearch.classList.remove('show');
+            filterPlayers();
+            renderPlayers();
+            searchInput.focus();
+        });
+
+        // Refresh button
+        refreshBtn.addEventListener('click', function() {
+            this.textContent = '🔄 Refreshing...';
+            this.disabled = true;
+            
+            setTimeout(() => {
+                loadPlayers();
+                this.textContent = '✓ Refreshed!';
+                
+                setTimeout(() => {
+                    this.textContent = '🔄 Refresh Gallery';
+                    this.disabled = false;
+                }, 1000);
+            }, 500);
+        });
+
+        // Auto-refresh toggle
+        autoRefreshCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                // Enable auto-refresh every 5 seconds
+                autoRefreshInterval = setInterval(loadPlayers, 5000);
+            } else {
+                // Disable auto-refresh
+                if (autoRefreshInterval) {
+                    clearInterval(autoRefreshInterval);
+                    autoRefreshInterval = null;
+                }
+            }
+        });
+
+        // Password for deletion
+        const ADMIN_PASSWORD = 'Akash@2001';
+
+        // Verify password
+        function verifyPassword() {
+            const password = prompt('Enter admin password to remove player:');
+            return password === ADMIN_PASSWORD;
+        }
+
+        // Clear all players
+        clearAllBtn.addEventListener('click', function() {
+            if (!verifyPassword()) {
+                alert('❌ Incorrect password! Access denied.');
+                return;
+            }
+            
+            if (confirm('Are you sure you want to remove all players? This action cannot be undone!')) {
+                localStorage.removeItem('teamPlayers');
+                players = [];
+                filterPlayers();
+                renderPlayers();
+                alert('✓ All players removed successfully!');
+            }
+        });
+
+        // Delete individual player
+        function deletePlayer(id) {
+            if (!verifyPassword()) {
+                alert('❌ Incorrect password! Access denied.');
+                return;
+            }
+            
+            if (confirm('Are you sure you want to remove this player?')) {
+                players = players.filter(p => p.id != id);
+                localStorage.setItem('teamPlayers', JSON.stringify(players));
+                filterPlayers();
+                renderPlayers();
+                alert('✓ Player removed successfully!');
+            }
+        }
+
+        // Format timestamp
+        function formatTimestamp(timestamp) {
+            const date = new Date(timestamp);
+            const now = new Date();
+            const diff = now - date;
+            
+            const minutes = Math.floor(diff / 60000);
+            const hours = Math.floor(diff / 3600000);
+            const days = Math.floor(diff / 86400000);
+            
+            if (minutes < 1) return 'Just now';
+            if (minutes < 60) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+            if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+            return `${days} day${days > 1 ? 's' : ''} ago`;
+        }
+
+        // Render players
+        function renderPlayers() {
+            if (players.length === 0) {
+                playersGrid.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🏆</div>
+                        <h3>No Players Yet</h3>
+                        <p>Be the first to register!</p>
+                        <a href="player_registration.html" class="empty-state-btn">Register Now</a>
+                    </div>
+                `;
+                return;
+            }
+
+            // Show total count (not filtered count in header)
+            playerCount.textContent = `${players.length} Player${players.length !== 1 ? 's' : ''}`;
+
+            // Check if no results from search
+            if (filteredPlayers.length === 0) {
+                playersGrid.innerHTML = `
+                    <div class="no-results">
+                        <div class="no-results-icon">🔍</div>
+                        <h3>No Players Found</h3>
+                        <p>No players match "${searchQuery}"</p>
+                        <p style="margin-top: 10px;">Try a different search term</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const typeIcons = {
+                'Batter': '🏏',
+                'Bowler': '⚡',
+                'All-Rounder': '⭐'
+            };
+
+            playersGrid.innerHTML = filteredPlayers.map(player => {
+                const playerType = (player.type || 'batter').toLowerCase().replace(' ', '-').replace('all-rounder', 'all-rounder');
+                
+                return `
+                    <div class="player-card">
+                        ${player.image 
+                            ? `<img class="player-image" src="${player.image}" alt="${player.name}">`
+                            : `<div class="player-image-placeholder">👤</div>`
+                        }
+                        <div class="player-name">${player.name || 'Unknown Player'}</div>
+                        <div class="player-type type-${playerType}">
+                            ${typeIcons[player.type] || '⚽'} ${player.type || 'Player'}
+                        </div>
+                        ${player.email ? `
+                            <div class="player-email">
+                                <span class="player-email-icon">📧</span>
+                                <span>${player.email}</span>
+                            </div>
+                        ` : ''}
+                        ${player.mobile ? `
+                            <div class="player-mobile">
+                                <span class="player-mobile-icon">📱</span>
+                                <span>${player.mobile}</span>
+                            </div>
+                        ` : ''}
+                        ${player.timestamp ? `
+                            <div class="player-timestamp">
+                                Registered ${formatTimestamp(player.timestamp)}
+                            </div>
+                        ` : ''}
+                        <button class="delete-btn" onclick="deletePlayer('${player.id}')">
+                            <span class="lock-icon">🔒</span>
+                            <span>Remove Player</span>
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Load players on page load
+        loadPlayers();
+
+        // Check for updates when page gets focus
+        window.addEventListener('focus', loadPlayers);
+    </script>
+</body>
+</html>
