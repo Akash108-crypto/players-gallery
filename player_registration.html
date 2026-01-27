@@ -359,7 +359,7 @@
 <body>
     <div class="registration-container">
         <div class="header">
-            <h1>⚽ Player Registration</h1>
+            <h1>🏏 Player Registration</h1>
             <p>Fill out the form below to join the team</p>
         </div>
 
@@ -408,19 +408,20 @@
 
             <div class="form-group">
                 <label for="playerMobile">
-                    Mobile Number
+                    Mobile Number <span class="required">*</span>
                 </label>
                 <input 
                     type="tel" 
                     id="playerMobile" 
                     placeholder="Enter your mobile number"
+                    required
                     autocomplete="off"
                 >
             </div>
 
             <div class="form-group">
                 <label for="playerImage">
-                    Player Picture
+                    Player Picture <span class="required">*</span>
                 </label>
                 <div class="file-input-wrapper">
                     <input 
@@ -559,6 +560,16 @@
                 return;
             }
 
+            if (!mobile) {
+                alert('Please enter mobile number');
+                return;
+            }
+
+            if (!currentImageFile) {
+                alert('Please select a player picture');
+                return;
+            }
+
             // Disable submit button
             submitBtn.disabled = true;
             submitBtn.textContent = '⏳ Registering...';
@@ -618,7 +629,7 @@
 
                     playerDetailsPopup.innerHTML = `
                         <p><strong>Name:</strong> ${name}</p>
-                        <p><strong>Type:</strong> ${typeIcons[type] || '⚽'} ${type}</p>
+                        <p><strong>Type:</strong> ${typeIcons[type] || '🏏'} ${type}</p>
                         <p><strong>Email:</strong> ${email}</p>
                         ${mobile ? `<p><strong>Mobile:</strong> ${mobile}</p>` : ''}
                     `;
