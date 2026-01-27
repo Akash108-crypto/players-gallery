@@ -554,7 +554,28 @@
         </div>
     </div>
 
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+
     <script>
+        // 🔥 Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCsLHmg5LnYVtPVLHM0DYEelsvZeLLSuVM",
+            authDomain: "players-gallery-3f0f4.firebaseapp.com",
+            projectId: "players-gallery-3f0f4",
+            storageBucket: "players-gallery-3f0f4.firebasestorage.app",
+            messagingSenderId: "481537498800",
+            appId: "1:481537498800:web:3812c4ea9df4adcdf06575",
+            databaseURL: "https://players-gallery-3f0f4-default-rtdb.firebaseio.com"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const storage = firebase.storage();
+
         let players = [];
         let filteredPlayers = [];
         let autoRefreshInterval = null;
@@ -570,18 +591,23 @@
         const clearSearch = document.getElementById('clearSearch');
         const searchResultsInfo = document.getElementById('searchResultsInfo');
 
-        // Load players from localStorage
+        // Load players from Firebase
         function loadPlayers() {
-            const storedPlayers = localStorage.getItem('teamPlayers');
-            if (storedPlayers) {
-                players = JSON.parse(storedPlayers);
+            database.ref('players').once('value', (snapshot) => {
+                players = [];
+                snapshot.forEach((childSnapshot) => {
+                    players.push(childSnapshot.val());
+                });
                 // Sort by timestamp (newest first)
                 players.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-            } else {
+                filterPlayers();
+                renderPlayers();
+            }, (error) => {
+                console.error('Error loading players:', error);
                 players = [];
-            }
-            filterPlayers();
-            renderPlayers();
+                filterPlayers();
+                renderPlayers();
+            });
         }
 
         // Filter players based on search query
@@ -682,11 +708,16 @@
             }
             
             if (confirm('Are you sure you want to remove all players? This action cannot be undone!')) {
-                localStorage.removeItem('teamPlayers');
-                players = [];
-                filterPlayers();
-                renderPlayers();
-                alert('✓ All players removed successfully!');
+                // Delete all players from Firebase
+                database.ref('players').remove()
+                    .then(() => {
+                        alert('✓ All players removed successfully!');
+                        loadPlayers(); // Reload from Firebase
+                    })
+                    .catch((error) => {
+                        console.error('Error removing players:', error);
+                        alert('❌ Error removing players. Please try again.');
+                    });
             }
         });
 
@@ -698,11 +729,16 @@
             }
             
             if (confirm('Are you sure you want to remove this player?')) {
-                players = players.filter(p => p.id != id);
-                localStorage.setItem('teamPlayers', JSON.stringify(players));
-                filterPlayers();
-                renderPlayers();
-                alert('✓ Player removed successfully!');
+                // Delete from Firebase
+                database.ref('players/' + id).remove()
+                    .then(() => {
+                        alert('✓ Player removed successfully!');
+                        loadPlayers(); // Reload from Firebase
+                    })
+                    .catch((error) => {
+                        console.error('Error removing player:', error);
+                        alert('❌ Error removing player. Please try again.');
+                    });
             }
         }
 
