@@ -594,16 +594,17 @@
                     // Generate unique player ID
                     const playerId = database.ref().child('players').push().key;
 
-                    // Create player object
-                    const player = {
-                        id: playerId,
-                        name: name,
-                        type: type,
-                        email: email,
-                        mobile: mobile,
-                        image: imageUrl,
-                        timestamp: new Date().toISOString()
-                    };
+                // Create player object
+                const player = {
+                    id: playerId,
+                    name: name,
+                    type: type,
+                    email: email,
+                    mobile: mobile,
+                    image: imageUrl,
+                    basePrice: 50000, // Base auction price
+                    timestamp: new Date().toISOString()
+                };
 
                     // Save to Firebase
                     submitBtn.textContent = '💾 Saving to database...';
