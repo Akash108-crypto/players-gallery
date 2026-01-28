@@ -72,6 +72,14 @@
             flex-wrap: wrap;
         }
 
+        .auction-actions {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+
         .btn {
             padding: 18px 40px;
             border: none;
@@ -110,10 +118,25 @@
             color: white;
         }
 
+        .btn-warning {
+            background: linear-gradient(135deg, #ffc107 0%, #ffb300 100%);
+            color: #000;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+        }
+
         .btn:disabled {
             opacity: 0.6;
             cursor: not-allowed;
             transform: none;
+        }
+
+        .btn-large {
+            padding: 20px 50px;
+            font-size: 20px;
         }
 
         .auction-display {
@@ -334,6 +357,135 @@
             margin: 5px 0;
         }
 
+        .auction-progress {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .progress-header h3 {
+            color: #333;
+            font-size: 20px;
+        }
+
+        .progress-stats {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .stat-badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .stat-total {
+            background: #667eea;
+            color: white;
+        }
+
+        .stat-sold {
+            background: #28a745;
+            color: white;
+        }
+
+        .stat-unsold {
+            background: #ffc107;
+            color: #000;
+        }
+
+        .stat-remaining {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 30px;
+            background: #e9ecef;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .auction-complete {
+            text-align: center;
+            padding: 40px;
+            animation: slideIn 0.6s ease-out;
+        }
+
+        .complete-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+
+        .auction-complete h2 {
+            color: #28a745;
+            font-size: 36px;
+            margin-bottom: 15px;
+        }
+
+        .auction-complete p {
+            color: #666;
+            font-size: 18px;
+            margin-bottom: 30px;
+        }
+
+        .auction-summary {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 12px;
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #dee2e6;
+            font-size: 18px;
+        }
+
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+
+        .summary-label {
+            color: #666;
+            font-weight: 600;
+        }
+
+        .summary-value {
+            color: #333;
+            font-weight: bold;
+        }
+
         .loading-spinner {
             width: 60px;
             height: 60px;
@@ -388,12 +540,27 @@
             <p>Select a random player for auction</p>
         </div>
 
+        <div class="auction-progress" id="auctionProgress" style="display: none;">
+            <div class="progress-header">
+                <h3>🎯 Auction Progress</h3>
+                <div class="progress-stats">
+                    <span class="stat-badge stat-total">Total: <span id="totalPlayers">0</span></span>
+                    <span class="stat-badge stat-sold">Sold: <span id="soldCount">0</span></span>
+                    <span class="stat-badge stat-unsold">Unsold: <span id="unsoldCount">0</span></span>
+                    <span class="stat-badge stat-remaining">Remaining: <span id="remainingCount">0</span></span>
+                </div>
+            </div>
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="progressBar" style="width: 0%">0%</div>
+            </div>
+        </div>
+
         <div class="auction-controls">
             <h2>Auction Controls</h2>
             <div class="button-group">
-                <button class="btn btn-primary" id="randomPlayerBtn">
-                    <span>🎲</span>
-                    <span>Pick Random Player</span>
+                <button class="btn btn-primary btn-large" id="startAuctionBtn">
+                    <span>🎯</span>
+                    <span>Start Auction</span>
                 </button>
                 <button class="btn btn-secondary" id="viewGalleryBtn">
                     <span>👁️</span>
@@ -409,8 +576,8 @@
         <div class="auction-display" id="auctionDisplay">
             <div class="no-player">
                 <div class="no-player-icon">🏏</div>
-                <h3>No Player Selected</h3>
-                <p>Click "Pick Random Player" to start the auction</p>
+                <h3>Ready to Start Auction</h3>
+                <p>Click "Start Auction" to begin selecting players randomly</p>
             </div>
         </div>
 
@@ -443,12 +610,23 @@
         const database = firebase.database();
 
         let allPlayers = [];
+        let playerQueue = [];
         let currentPlayer = null;
+        let soldPlayers = [];
+        let unsoldPlayers = [];
+        let processedPlayerIds = new Set();
+        let isAuctionActive = false;
 
         const auctionDisplay = document.getElementById('auctionDisplay');
-        const randomPlayerBtn = document.getElementById('randomPlayerBtn');
+        const auctionProgress = document.getElementById('auctionProgress');
+        const startAuctionBtn = document.getElementById('startAuctionBtn');
         const viewGalleryBtn = document.getElementById('viewGalleryBtn');
         const registerBtn = document.getElementById('registerBtn');
+        const totalPlayersSpan = document.getElementById('totalPlayers');
+        const soldCountSpan = document.getElementById('soldCount');
+        const unsoldCountSpan = document.getElementById('unsoldCount');
+        const remainingCountSpan = document.getElementById('remainingCount');
+        const progressBar = document.getElementById('progressBar');
 
         // Load all players from Firebase
         function loadPlayers() {
@@ -466,10 +644,10 @@
             });
         }
 
-        // Pick random player
-        async function pickRandomPlayer() {
-            randomPlayerBtn.disabled = true;
-            randomPlayerBtn.innerHTML = '<div class="loading-spinner"></div><span>Loading...</span>';
+        // Start auction
+        async function startAuction() {
+            startAuctionBtn.disabled = true;
+            startAuctionBtn.innerHTML = '<div class="loading-spinner"></div><span>Loading Players...</span>';
 
             try {
                 await loadPlayers();
@@ -482,28 +660,193 @@
                             <p>Please register some players first</p>
                         </div>
                     `;
-                    randomPlayerBtn.disabled = false;
-                    randomPlayerBtn.innerHTML = '<span>🎲</span><span>Pick Random Player</span>';
+                    startAuctionBtn.disabled = false;
+                    startAuctionBtn.innerHTML = '<span>🎯</span><span>Start Auction</span>';
                     return;
                 }
 
-                // Add suspense with delay
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                // Initialize auction
+                isAuctionActive = true;
+                playerQueue = [...allPlayers];
+                shuffleArray(playerQueue); // Randomize initial order
+                soldPlayers = [];
+                unsoldPlayers = [];
+                processedPlayerIds = new Set();
 
-                // Pick random player
-                const randomIndex = Math.floor(Math.random() * allPlayers.length);
-                currentPlayer = allPlayers[randomIndex];
+                // Show progress bar
+                auctionProgress.style.display = 'block';
+                updateProgress();
 
-                // Display player
-                displayPlayer(currentPlayer);
+                // Hide start button
+                startAuctionBtn.style.display = 'none';
+
+                // Show first player
+                await showNextPlayer();
 
             } catch (error) {
                 alert('Error loading players. Please try again.');
                 console.error(error);
+                startAuctionBtn.disabled = false;
+                startAuctionBtn.innerHTML = '<span>🎯</span><span>Start Auction</span>';
+            }
+        }
+
+        // Shuffle array (Fisher-Yates algorithm)
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        // Show next player in queue
+        async function showNextPlayer() {
+            if (playerQueue.length === 0) {
+                // Auction complete
+                showAuctionComplete();
+                return;
             }
 
-            randomPlayerBtn.disabled = false;
-            randomPlayerBtn.innerHTML = '<span>🎲</span><span>Pick Random Player</span>';
+            // Show loading
+            auctionDisplay.innerHTML = `
+                <div class="no-player">
+                    <div class="loading-spinner"></div>
+                    <h3>Loading Next Player...</h3>
+                </div>
+            `;
+
+            // Add suspense
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            // Get next player
+            currentPlayer = playerQueue.shift();
+            
+            // Display player with action buttons
+            displayPlayer(currentPlayer);
+            updateProgress();
+        }
+
+        // Mark player as sold
+        async function markAsSold() {
+            if (!currentPlayer) return;
+
+            soldPlayers.push(currentPlayer);
+            processedPlayerIds.add(currentPlayer.id);
+            
+            // Save to Firebase
+            await database.ref('players/' + currentPlayer.id).update({
+                auctionStatus: 'sold',
+                soldAt: new Date().toISOString()
+            });
+
+            // Show next player
+            await showNextPlayer();
+        }
+
+        // Mark player as unsold
+        async function markAsUnsold() {
+            if (!currentPlayer) return;
+
+            // Check if this player was already unsold once
+            if (processedPlayerIds.has(currentPlayer.id)) {
+                // Second time unsold - permanently unsold
+                unsoldPlayers.push(currentPlayer);
+                
+                await database.ref('players/' + currentPlayer.id).update({
+                    auctionStatus: 'unsold',
+                    unsoldAt: new Date().toISOString()
+                });
+            } else {
+                // First time unsold - add to end of queue
+                playerQueue.push(currentPlayer);
+                processedPlayerIds.add(currentPlayer.id);
+            }
+
+            // Show next player
+            await showNextPlayer();
+        }
+
+        // Update progress
+        function updateProgress() {
+            const total = allPlayers.length;
+            const sold = soldPlayers.length;
+            const unsold = unsoldPlayers.length;
+            const remaining = playerQueue.length;
+            const processed = sold + unsold;
+            const percentage = total > 0 ? Math.round((processed / total) * 100) : 0;
+
+            totalPlayersSpan.textContent = total;
+            soldCountSpan.textContent = sold;
+            unsoldCountSpan.textContent = unsold;
+            remainingCountSpan.textContent = remaining;
+            progressBar.style.width = percentage + '%';
+            progressBar.textContent = percentage + '%';
+        }
+
+        // Show auction complete
+        function showAuctionComplete() {
+            isAuctionActive = false;
+
+            auctionDisplay.innerHTML = `
+                <div class="auction-complete">
+                    <div class="complete-icon">🎉</div>
+                    <h2>Auction Complete!</h2>
+                    <p>All players have been processed</p>
+
+                    <div class="auction-summary">
+                        <div class="summary-item">
+                            <span class="summary-label">Total Players:</span>
+                            <span class="summary-value">${allPlayers.length}</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">✅ Sold Players:</span>
+                            <span class="summary-value" style="color: #28a745">${soldPlayers.length}</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">❌ Unsold Players:</span>
+                            <span class="summary-value" style="color: #ffc107">${unsoldPlayers.length}</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">💰 Total Base Value:</span>
+                            <span class="summary-value">₹${(allPlayers.length * 50000).toLocaleString('en-IN')}</span>
+                        </div>
+                    </div>
+
+                    <div class="button-group" style="margin-top: 30px;">
+                        <button class="btn btn-primary" onclick="resetAuction()">
+                            <span>🔄</span>
+                            <span>Start New Auction</span>
+                        </button>
+                        <button class="btn btn-secondary" onclick="window.location.href='players_gallery.html'">
+                            <span>👁️</span>
+                            <span>View Gallery</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Reset auction
+        function resetAuction() {
+            isAuctionActive = false;
+            playerQueue = [];
+            currentPlayer = null;
+            soldPlayers = [];
+            unsoldPlayers = [];
+            processedPlayerIds = new Set();
+            
+            auctionProgress.style.display = 'none';
+            startAuctionBtn.style.display = 'flex';
+            startAuctionBtn.disabled = false;
+            startAuctionBtn.innerHTML = '<span>🎯</span><span>Start Auction</span>';
+
+            auctionDisplay.innerHTML = `
+                <div class="no-player">
+                    <div class="no-player-icon">🏏</div>
+                    <h3>Ready to Start Auction</h3>
+                    <p>Click "Start Auction" to begin selecting players randomly</p>
+                </div>
+            `;
         }
 
         // Display selected player
@@ -580,8 +923,20 @@
                     <div class="stats-info">
                         <p><strong>💡 Auction Info:</strong></p>
                         <p>• Base Price: ₹${basePrice.toLocaleString('en-IN')}</p>
-                        <p>• Total Players Available: ${allPlayers.length}</p>
-                        <p>• Click "Pick Random Player" to select another player</p>
+                        <p>• Total Players: ${allPlayers.length}</p>
+                        <p>• Remaining in Queue: ${playerQueue.length}</p>
+                        ${processedPlayerIds.has(player.id) ? '<p>• ⚠️ This player was unsold before (Last chance!)</p>' : ''}
+                    </div>
+
+                    <div class="auction-actions">
+                        <button class="btn btn-success btn-large" onclick="markAsSold()">
+                            <span>✅</span>
+                            <span>SOLD</span>
+                        </button>
+                        <button class="btn btn-warning btn-large" onclick="markAsUnsold()">
+                            <span>❌</span>
+                            <span>UNSOLD</span>
+                        </button>
                     </div>
                 </div>
             `;
@@ -597,18 +952,35 @@
         }
 
         // Event listeners
-        randomPlayerBtn.addEventListener('click', pickRandomPlayer);
+        startAuctionBtn.addEventListener('click', startAuction);
 
         viewGalleryBtn.addEventListener('click', () => {
-            window.location.href = 'players_gallery.html';
+            if (isAuctionActive) {
+                if (confirm('Auction is in progress. Are you sure you want to leave?')) {
+                    window.location.href = 'players_gallery.html';
+                }
+            } else {
+                window.location.href = 'players_gallery.html';
+            }
         });
 
         registerBtn.addEventListener('click', () => {
-            window.location.href = 'player_registration.html';
+            if (isAuctionActive) {
+                if (confirm('Auction is in progress. Are you sure you want to leave?')) {
+                    window.location.href = 'player_registration.html';
+                }
+            } else {
+                window.location.href = 'player_registration.html';
+            }
         });
 
-        // Load players on page load (to get count)
-        loadPlayers();
+        // Prevent accidental page close during auction
+        window.addEventListener('beforeunload', (e) => {
+            if (isAuctionActive && playerQueue.length > 0) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        });
     </script>
 </body>
 </html>
