@@ -576,19 +576,35 @@
 
             // Upload image to Firebase if selected
             const uploadImage = async (file) => {
-                if (!file) return null;
+                if (!file) {
+                    console.log('No file provided to upload');
+                    return null;
+                }
                 
                 try {
-                    const playerId = Date.now();
-                    const storageRef = storage.ref(`player-images/${playerId}`);
+                    const timestamp = Date.now();
+                    const fileName = `${timestamp}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
+                    const storageRef = storage.ref(`player-images/${fileName}`);
                     
+                    console.log('Starting image upload:', fileName);
                     submitBtn.textContent = '📤 Uploading image...';
-                    await storageRef.put(file);
                     
+                    // Upload the file
+                    const uploadTask = await storageRef.put(file);
+                    console.log('Upload complete:', uploadTask);
+                    
+                    // Get the download URL
                     const downloadURL = await storageRef.getDownloadURL();
+                    console.log('Download URL:', downloadURL);
+                    
+                    if (!downloadURL) {
+                        throw new Error('Failed to get download URL');
+                    }
+                    
                     return downloadURL;
                 } catch (error) {
                     console.error('Image upload error:', error);
+                    alert('⚠️ Image upload failed: ' + error.message);
                     return null;
                 }
             };
@@ -599,11 +615,21 @@
                     // Upload image first if exists
                     let imageUrl = null;
                     if (currentImageFile) {
+                        console.log('Uploading image file:', currentImageFile.name);
                         imageUrl = await uploadImage(currentImageFile);
+                        
+                        if (!imageUrl) {
+                            throw new Error('Image upload failed - no URL returned');
+                        }
+                        
+                        console.log('Image uploaded successfully, URL:', imageUrl);
+                    } else {
+                        console.warn('No image file selected!');
                     }
 
                     // Generate unique player ID
                     const playerId = database.ref().child('players').push().key;
+                    console.log('Generated player ID:', playerId);
 
                     // Create player object
                     const player = {
@@ -612,13 +638,26 @@
                         type: type,
                         email: email,
                         mobile: mobile,
-                        image: imageUrl,
+                        image: imageUrl || '',
                         timestamp: new Date().toISOString()
                     };
+
+                    console.log('Saving player data:', player);
 
                     // Save to Firebase
                     submitBtn.textContent = '💾 Saving to database...';
                     await database.ref('players/' + playerId).set(player);
+                    
+                    console.log('Player saved successfully to database');
+
+                    // Verify the data was saved
+                    const snapshot = await database.ref('players/' + playerId).once('value');
+                    const savedPlayer = snapshot.val();
+                    console.log('Verified saved player:', savedPlayer);
+                    
+                    if (!savedPlayer.image) {
+                        console.error('WARNING: Image URL was not saved to database!');
+                    }
 
                     // Show player details in popup
                     const typeIcons = {
@@ -632,6 +671,7 @@
                         <p><strong>Type:</strong> ${typeIcons[type] || '🏏'} ${type}</p>
                         <p><strong>Email:</strong> ${email}</p>
                         ${mobile ? `<p><strong>Mobile:</strong> ${mobile}</p>` : ''}
+                        ${imageUrl ? '<p style="color: #28a745;">✓ Profile picture uploaded</p>' : '<p style="color: #dc3545;">⚠️ No profile picture</p>'}
                     `;
 
                     // Show success popup
@@ -644,7 +684,7 @@
 
                 } catch (error) {
                     console.error('Registration error:', error);
-                    alert('Error registering player. Please try again.');
+                    alert('❌ Error registering player: ' + error.message + '\n\nPlease try again.');
                     submitBtn.disabled = false;
                     submitBtn.textContent = 'Register Player';
                 }

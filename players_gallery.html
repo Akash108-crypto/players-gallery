@@ -797,10 +797,19 @@
             playersGrid.innerHTML = filteredPlayers.map(player => {
                 const playerType = (player.type || 'batter').toLowerCase().replace(' ', '-').replace('all-rounder', 'all-rounder');
                 
+                // Debug logging for image URLs
+                if (player.image) {
+                    console.log(`Player ${player.name} has image URL:`, player.image);
+                } else {
+                    console.log(`Player ${player.name} has NO image URL`);
+                }
+                
                 return `
                     <div class="player-card">
-                        ${player.image 
-                            ? `<img class="player-image" src="${player.image}" alt="${player.name}">`
+                        ${player.image && player.image.trim() !== '' 
+                            ? `<img class="player-image" src="${player.image}" alt="${player.name}" 
+                                    onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                               <div class="player-image-placeholder" style="display:none;">👤</div>`
                             : `<div class="player-image-placeholder">👤</div>`
                         }
                         <div class="player-name">${player.name || 'Unknown Player'}</div>

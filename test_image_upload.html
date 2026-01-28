@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase Image Upload Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+        }
+        button {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #5568d3;
+        }
+        .log {
+            background: #000;
+            color: #0f0;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+        .log-entry {
+            margin: 5px 0;
+        }
+        .success { color: #0f0; }
+        .error { color: #f00; }
+        .warning { color: #ff0; }
+        .info { color: #0ff; }
+        input[type="file"] {
+            margin: 10px 0;
+            padding: 10px;
+        }
+        img {
+            max-width: 300px;
+            max-height: 300px;
+            border: 3px solid #667eea;
+            border-radius: 10px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Firebase Image Upload Diagnostic Tool</h1>
+        
+        <div class="test-section">
+            <h3>1. Test Firebase Connection</h3>
+            <button onclick="testFirebaseConnection()">Test Connection</button>
+        </div>
+
+        <div class="test-section">
+            <h3>2. Test Image Upload</h3>
+            <input type="file" id="testImage" accept="image/*">
+            <br>
+            <button onclick="testImageUpload()">Upload Test Image</button>
+            <div id="imagePreview"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>3. Check Storage Permissions</h3>
+            <button onclick="checkStoragePermissions()">Check Permissions</button>
+        </div>
+
+        <div class="test-section">
+            <h3>4. View All Players with Image Status</h3>
+            <button onclick="checkAllPlayers()">Check All Players</button>
+        </div>
+
+        <div class="log" id="console"></div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCsLHmg5LnYVtPVLHM0DYEelsvZeLLSuVM",
+            authDomain: "players-gallery-3f0f4.firebaseapp.com",
+            projectId: "players-gallery-3f0f4",
+            storageBucket: "players-gallery-3f0f4.firebasestorage.app",
+            messagingSenderId: "481537498800",
+            appId: "1:481537498800:web:3812c4ea9df4adcdf06575",
+            databaseURL: "https://players-gallery-3f0f4-default-rtdb.asia-southeast1.firebasedatabase.app"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const storage = firebase.storage();
+
+        const consoleDiv = document.getElementById('console');
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = `[${timestamp}] ${message}`;
+            consoleDiv.appendChild(entry);
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+            console.log(message);
+        }
+
+        function testFirebaseConnection() {
+            log('Testing Firebase connection...', 'info');
+            
+            try {
+                log('✓ Firebase initialized', 'success');
+                log(`✓ Database URL: ${firebaseConfig.databaseURL}`, 'success');
+                log(`✓ Storage Bucket: ${firebaseConfig.storageBucket}`, 'success');
+                
+                // Test database read
+                database.ref('players').limitToFirst(1).once('value')
+                    .then(snapshot => {
+                        log('✓ Database connection successful', 'success');
+                        log(`✓ Found ${snapshot.numChildren()} player(s) in test query`, 'success');
+                    })
+                    .catch(error => {
+                        log('✗ Database connection failed: ' + error.message, 'error');
+                    });
+                
+                // Test storage reference
+                const testRef = storage.ref('test');
+                log('✓ Storage reference created successfully', 'success');
+                
+            } catch (error) {
+                log('✗ Firebase connection error: ' + error.message, 'error');
+            }
+        }
+
+        async function testImageUpload() {
+            const fileInput = document.getElementById('testImage');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                log('✗ No file selected', 'error');
+                return;
+            }
+            
+            log(`Uploading file: ${file.name} (${(file.size / 1024).toFixed(2)} KB)`, 'info');
+            
+            try {
+                // Create a unique filename
+                const timestamp = Date.now();
+                const fileName = `test_${timestamp}_${file.name}`;
+                const storageRef = storage.ref(`player-images/${fileName}`);
+                
+                log('Creating storage reference...', 'info');
+                log(`Path: player-images/${fileName}`, 'info');
+                
+                // Upload the file
+                log('Starting upload...', 'info');
+                const uploadTask = await storageRef.put(file);
+                log('✓ Upload complete!', 'success');
+                log(`Upload metadata: ${JSON.stringify(uploadTask.metadata.contentType)}`, 'info');
+                
+                // Get download URL
+                log('Getting download URL...', 'info');
+                const downloadURL = await storageRef.getDownloadURL();
+                log('✓ Download URL obtained!', 'success');
+                log(`URL: ${downloadURL}`, 'success');
+                
+                // Show preview
+                const preview = document.getElementById('imagePreview');
+                preview.innerHTML = `
+                    <p style="color: green; font-weight: bold;">✓ Upload Successful!</p>
+                    <p>URL: <a href="${downloadURL}" target="_blank">${downloadURL}</a></p>
+                    <img src="${downloadURL}" alt="Uploaded image">
+                `;
+                
+                log('✓ Image preview displayed', 'success');
+                
+            } catch (error) {
+                log('✗ Upload failed: ' + error.message, 'error');
+                log('Error code: ' + error.code, 'error');
+                log('Full error: ' + JSON.stringify(error), 'error');
+            }
+        }
+
+        async function checkStoragePermissions() {
+            log('Checking Firebase Storage permissions...', 'info');
+            
+            try {
+                // Try to list files (this will fail if no read permission)
+                const storageRef = storage.ref('player-images');
+                
+                try {
+                    const result = await storageRef.listAll();
+                    log(`✓ Can list files: ${result.items.length} file(s) found`, 'success');
+                    
+                    if (result.items.length > 0) {
+                        log('Sample files:', 'info');
+                        result.items.slice(0, 5).forEach(item => {
+                            log(`  - ${item.name}`, 'info');
+                        });
+                    }
+                } catch (error) {
+                    log('⚠ Cannot list files (might be permission restricted)', 'warning');
+                    log('This is OK if upload still works', 'warning');
+                }
+                
+                // Check if we can create a reference (this should always work)
+                const testRef = storage.ref(`player-images/permission_test_${Date.now()}.txt`);
+                log('✓ Can create storage references', 'success');
+                
+            } catch (error) {
+                log('✗ Storage permission error: ' + error.message, 'error');
+            }
+        }
+
+        async function checkAllPlayers() {
+            log('Checking all players in database...', 'info');
+            
+            try {
+                const snapshot = await database.ref('players').once('value');
+                const players = [];
+                
+                snapshot.forEach((childSnapshot) => {
+                    players.push(childSnapshot.val());
+                });
+                
+                log(`✓ Found ${players.length} player(s) in database`, 'success');
+                
+                let withImage = 0;
+                let withoutImage = 0;
+                
+                players.forEach((player, index) => {
+                    if (player.image && player.image.trim() !== '') {
+                        withImage++;
+                        log(`${index + 1}. ${player.name}: ✓ HAS IMAGE`, 'success');
+                        log(`   URL: ${player.image.substring(0, 80)}...`, 'info');
+                    } else {
+                        withoutImage++;
+                        log(`${index + 1}. ${player.name}: ✗ NO IMAGE`, 'warning');
+                    }
+                });
+                
+                log(`Summary: ${withImage} with images, ${withoutImage} without images`, 'info');
+                
+            } catch (error) {
+                log('✗ Error checking players: ' + error.message, 'error');
+            }
+        }
+
+        // Auto-test on page load
+        window.addEventListener('load', () => {
+            log('=== Firebase Diagnostic Tool Started ===', 'info');
+            log('Run tests above to diagnose image upload issues', 'info');
+            log('', 'info');
+        });
+    </script>
+</body>
+</html>
