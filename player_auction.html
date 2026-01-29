@@ -613,6 +613,213 @@
             color: #dc3545;
         }
 
+        .increment-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .increment-btn {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .increment-btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .increment-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Team Details Modal */
+        .team-details-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .team-details-overlay.show {
+            display: flex;
+        }
+
+        .team-details-popup {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 800px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: popIn 0.5s ease-out;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .team-details-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .team-details-header h2 {
+            color: #333;
+            font-size: 32px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .close-details-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .close-details-btn:hover {
+            background: #c82333;
+        }
+
+        .team-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-box {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-box .label {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .stat-box .value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .players-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        .players-table thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .players-table th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .players-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e0e0e0;
+            vertical-align: middle;
+        }
+
+        .players-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .players-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .download-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(40, 167, 69, 0.4);
+        }
+
+        .empty-team {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .empty-team-icon {
+            font-size: 60px;
+            margin-bottom: 15px;
+        }
+
+        .remove-player-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .remove-player-btn:hover {
+            background: #c82333;
+            transform: scale(1.05);
+        }
+
+        .remove-player-btn:active {
+            transform: scale(0.98);
+        }
+
         .teams-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -736,10 +943,16 @@
             border-radius: 12px;
             text-align: center;
             transition: transform 0.3s;
+            cursor: pointer;
         }
 
         .team-summary-card:hover {
             transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+        }
+
+        .team-summary-card:active {
+            transform: translateY(-1px);
         }
 
         .team-summary-card .team-icon-large {
@@ -852,42 +1065,42 @@
         <div class="teams-summary" id="teamsSummary" style="display: none;">
             <h3>📋 Team Rosters</h3>
             <div class="teams-row">
-                <div class="team-summary-card" id="teamACard">
+                <div class="team-summary-card" id="teamACard" onclick="showTeamDetails('Team A')">
                     <div class="team-icon-large">🔴</div>
                     <div class="team-name-large">Team A</div>
                     <div class="team-players-count" id="teamACount">0/11</div>
                     <div class="team-label">Players</div>
                     <div class="team-purse-remaining" id="teamAPurse">₹50,00,000</div>
                 </div>
-                <div class="team-summary-card" id="teamBCard">
+                <div class="team-summary-card" id="teamBCard" onclick="showTeamDetails('Team B')">
                     <div class="team-icon-large">🔵</div>
                     <div class="team-name-large">Team B</div>
                     <div class="team-players-count" id="teamBCount">0/11</div>
                     <div class="team-label">Players</div>
                     <div class="team-purse-remaining" id="teamBPurse">₹50,00,000</div>
                 </div>
-                <div class="team-summary-card" id="teamCCard">
+                <div class="team-summary-card" id="teamCCard" onclick="showTeamDetails('Team C')">
                     <div class="team-icon-large">🟢</div>
                     <div class="team-name-large">Team C</div>
                     <div class="team-players-count" id="teamCCount">0/11</div>
                     <div class="team-label">Players</div>
                     <div class="team-purse-remaining" id="teamCPurse">₹50,00,000</div>
                 </div>
-                <div class="team-summary-card" id="teamDCard">
+                <div class="team-summary-card" id="teamDCard" onclick="showTeamDetails('Team D')">
                     <div class="team-icon-large">🟡</div>
                     <div class="team-name-large">Team D</div>
                     <div class="team-players-count" id="teamDCount">0/11</div>
                     <div class="team-label">Players</div>
                     <div class="team-purse-remaining" id="teamDPurse">₹50,00,000</div>
                 </div>
-                <div class="team-summary-card" id="teamECard">
+                <div class="team-summary-card" id="teamECard" onclick="showTeamDetails('Team E')">
                     <div class="team-icon-large">🟣</div>
                     <div class="team-name-large">Team E</div>
                     <div class="team-players-count" id="teamECount">0/11</div>
                     <div class="team-label">Players</div>
                     <div class="team-purse-remaining" id="teamEPurse">₹50,00,000</div>
                 </div>
-                <div class="team-summary-card" id="teamFCard">
+                <div class="team-summary-card" id="teamFCard" onclick="showTeamDetails('Team F')">
                     <div class="team-icon-large">🟠</div>
                     <div class="team-name-large">Team F</div>
                     <div class="team-players-count" id="teamFCount">0/11</div>
@@ -946,6 +1159,43 @@
         </div>
     </div>
 
+    <!-- Team Details Modal -->
+    <div class="team-details-overlay" id="teamDetailsOverlay">
+        <div class="team-details-popup">
+            <div class="team-details-header">
+                <h2>
+                    <span id="teamDetailsIcon">🔴</span>
+                    <span id="teamDetailsName">Team A</span>
+                </h2>
+                <button class="close-details-btn" onclick="closeTeamDetails()">✕ Close</button>
+            </div>
+
+            <div class="team-stats">
+                <div class="stat-box">
+                    <div class="label">Total Players</div>
+                    <div class="value" id="teamDetailsCount">0/11</div>
+                </div>
+                <div class="stat-box">
+                    <div class="label">Total Spent</div>
+                    <div class="value" id="teamDetailsSpent">₹0</div>
+                </div>
+                <div class="stat-box">
+                    <div class="label">Purse Remaining</div>
+                    <div class="value" id="teamDetailsRemaining">₹50,00,000</div>
+                </div>
+            </div>
+
+            <div id="teamDetailsContent">
+                <!-- Players table will be inserted here -->
+            </div>
+
+            <button class="download-btn" onclick="downloadTeamList()">
+                <span>📥</span>
+                <span>Download Team List (CSV)</span>
+            </button>
+        </div>
+    </div>
+
     <!-- Team Selection Popup -->
     <div class="team-selection-overlay" id="teamSelectionOverlay">
         <div class="team-selection-popup">
@@ -965,6 +1215,9 @@
                         min="0"
                         step="1000"
                     >
+                </div>
+                <div class="increment-buttons" id="incrementButtons">
+                    <!-- Increment buttons will be added here dynamically -->
                 </div>
                 <div class="price-helper">
                     💡 Base price: ₹<span id="basePriceHelper">50,000</span>
@@ -1050,6 +1303,9 @@
         const teamSelectionOverlay = document.getElementById('teamSelectionOverlay');
         const selectedPlayerInfo = document.getElementById('selectedPlayerInfo');
         const teamsGrid = document.getElementById('teamsGrid');
+        const teamDetailsOverlay = document.getElementById('teamDetailsOverlay');
+        let currentViewingTeam = null;
+        const ADMIN_PASSWORD = 'Akash@2001';
 
         // Load all players from Firebase
         function loadPlayers() {
@@ -1199,7 +1455,11 @@
             sellingPriceInput.addEventListener('input', function() {
                 const price = parseInt(this.value) || 0;
                 updateTeamButtonStates(price);
+                updateIncrementButtons();
             });
+
+            // Initialize increment buttons
+            updateIncrementButtons();
             
             // Generate team buttons with purse info
             teamsGrid.innerHTML = Object.keys(teams).map(teamName => {
@@ -1329,6 +1589,216 @@
                     </button>
                 `;
             }).join('');
+        }
+
+        // Update increment buttons based on current price
+        function updateIncrementButtons() {
+            const sellingPriceInput = document.getElementById('sellingPrice');
+            const currentPrice = parseInt(sellingPriceInput.value) || 50000;
+            const incrementButtons = document.getElementById('incrementButtons');
+            
+            let increments = [];
+            
+            if (currentPrice < 200000) {
+                // 50k to 2L: increment by 25K
+                increments = [25000, 50000, 100000];
+            } else if (currentPrice < 500000) {
+                // 2L to 5L: increment by 50K
+                increments = [50000, 100000, 200000];
+            } else {
+                // 5L onwards: increment by 1L
+                increments = [100000, 200000, 500000];
+            }
+            
+            incrementButtons.innerHTML = increments.map(inc => `
+                <button class="increment-btn" onclick="incrementPrice(${inc})">
+                    + ₹${(inc/1000).toFixed(0)}K
+                </button>
+            `).join('');
+        }
+
+        // Increment price
+        function incrementPrice(amount) {
+            const sellingPriceInput = document.getElementById('sellingPrice');
+            const currentPrice = parseInt(sellingPriceInput.value) || 50000;
+            const newPrice = currentPrice + amount;
+            sellingPriceInput.value = newPrice;
+            
+            // Trigger input event to update team buttons
+            const event = new Event('input');
+            sellingPriceInput.dispatchEvent(event);
+        }
+
+        // Show team details
+        function showTeamDetails(teamName) {
+            currentViewingTeam = teamName;
+            const teamPlayers = teams[teamName];
+            const teamValue = teamPlayers.reduce((sum, p) => sum + (p.sellingPrice || 50000), 0);
+            const remainingPurse = teamPurses[teamName];
+            
+            // Update header
+            document.getElementById('teamDetailsIcon').textContent = teamIcons[teamName];
+            document.getElementById('teamDetailsName').textContent = teamName;
+            
+            // Update stats
+            document.getElementById('teamDetailsCount').textContent = `${teamPlayers.length}/11`;
+            document.getElementById('teamDetailsSpent').textContent = '₹' + teamValue.toLocaleString('en-IN');
+            document.getElementById('teamDetailsRemaining').textContent = '₹' + remainingPurse.toLocaleString('en-IN');
+            
+            // Update content
+            const teamDetailsContent = document.getElementById('teamDetailsContent');
+            
+            if (teamPlayers.length === 0) {
+                teamDetailsContent.innerHTML = `
+                    <div class="empty-team">
+                        <div class="empty-team-icon">🏏</div>
+                        <h3>No Players Yet</h3>
+                        <p>This team hasn't bought any players</p>
+                    </div>
+                `;
+            } else {
+                const typeIcons = {
+                    'Batter': '🏏',
+                    'Bowler': '⚡',
+                    'All-Rounder': '⭐'
+                };
+                
+                teamDetailsContent.innerHTML = `
+                    <table class="players-table">
+                        <thead>
+                            <tr>
+                                <th>Player</th>
+                                <th>Category</th>
+                                <th>Amount</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${teamPlayers.map((player, index) => `
+                                <tr>
+                                    <td><strong>${index + 1}. ${player.name}</strong></td>
+                                    <td>${typeIcons[player.type] || '⚽'} ${player.type}</td>
+                                    <td><strong>₹${(player.sellingPrice || 50000).toLocaleString('en-IN')}</strong></td>
+                                    <td>
+                                        <button class="remove-player-btn" onclick="removePlayerFromTeam('${teamName}', '${player.id}')">
+                                            🔒 Remove
+                                        </button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            }
+            
+            // Show overlay
+            teamDetailsOverlay.classList.add('show');
+        }
+
+        // Close team details
+        function closeTeamDetails() {
+            teamDetailsOverlay.classList.remove('show');
+            currentViewingTeam = null;
+        }
+
+        // Download team list as CSV
+        function downloadTeamList() {
+            if (!currentViewingTeam) return;
+            
+            const teamPlayers = teams[currentViewingTeam];
+            
+            if (teamPlayers.length === 0) {
+                alert('No players to download!');
+                return;
+            }
+            
+            // Create CSV content
+            let csv = 'Player,Category,Amount\n';
+            
+            teamPlayers.forEach(player => {
+                const name = player.name.replace(/,/g, ''); // Remove commas from name
+                const category = player.type;
+                const amount = player.sellingPrice || 50000;
+                csv += `${name},${category},${amount}\n`;
+            });
+            
+            // Create blob and download
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${currentViewingTeam.replace(' ', '_')}_Players.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+
+        // Verify admin password
+        function verifyAdminPassword() {
+            const password = prompt('🔐 Enter admin password to remove player:');
+            return password === ADMIN_PASSWORD;
+        }
+
+        // Remove player from team
+        async function removePlayerFromTeam(teamName, playerId) {
+            // Verify password
+            if (!verifyAdminPassword()) {
+                alert('❌ Incorrect password! Access denied.');
+                return;
+            }
+
+            // Find the player in the team
+            const playerIndex = teams[teamName].findIndex(p => p.id === playerId);
+            
+            if (playerIndex === -1) {
+                alert('Player not found in team!');
+                return;
+            }
+
+            const player = teams[teamName][playerIndex];
+            const sellingPrice = player.sellingPrice || 50000;
+
+            // Confirm removal
+            if (!confirm(`Remove ${player.name} from ${teamName}?\n\nThis will:\n✓ Remove player from team\n✓ Refund ₹${sellingPrice.toLocaleString('en-IN')} to team purse\n✓ Return player to gallery`)) {
+                return;
+            }
+
+            try {
+                // Remove from team array
+                teams[teamName].splice(playerIndex, 1);
+
+                // Add selling price back to team purse
+                teamPurses[teamName] += sellingPrice;
+
+                // Remove from sold players
+                const soldIndex = soldPlayers.findIndex(p => p.id === playerId);
+                if (soldIndex !== -1) {
+                    soldPlayers.splice(soldIndex, 1);
+                }
+
+                // Update Firebase - mark player as available (remove team and auction status)
+                await database.ref('players/' + playerId).update({
+                    auctionStatus: null,
+                    team: null,
+                    sellingPrice: null,
+                    soldAt: null,
+                    removedFromTeam: new Date().toISOString()
+                });
+
+                // Update UI
+                updateTeamCounts();
+                updateProgress();
+
+                // Refresh the team details modal
+                showTeamDetails(teamName);
+
+                alert(`✓ ${player.name} removed successfully!\n\n✓ ₹${sellingPrice.toLocaleString('en-IN')} refunded to ${teamName}\n✓ Player returned to gallery`);
+
+            } catch (error) {
+                console.error('Error removing player:', error);
+                alert('❌ Error removing player. Please try again.');
+            }
         }
 
         // Cancel team selection
