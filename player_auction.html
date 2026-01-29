@@ -486,6 +486,315 @@
             font-weight: bold;
         }
 
+        .team-selection-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .team-selection-overlay.show {
+            display: flex;
+        }
+
+        .team-selection-popup {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 90%;
+            text-align: center;
+            animation: popIn 0.5s ease-out;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        @keyframes popIn {
+            from {
+                opacity: 0;
+                transform: scale(0.8) translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .team-selection-popup h3 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 15px;
+        }
+
+        .team-selection-popup .player-mini {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+        }
+
+        .team-selection-popup .player-mini strong {
+            color: #667eea;
+            font-size: 20px;
+        }
+
+        .price-input-section {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+        }
+
+        .price-input-section label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .price-input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: 2px solid #ffc107;
+        }
+
+        .price-input-wrapper .currency {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .price-input-wrapper input {
+            flex: 1;
+            border: none;
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            font-family: 'Courier New', monospace;
+            outline: none;
+        }
+
+        .price-input-wrapper input:focus {
+            outline: none;
+        }
+
+        .price-helper {
+            font-size: 14px;
+            color: #856404;
+            margin-top: 8px;
+            text-align: left;
+        }
+
+        .price-warning {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-size: 13px;
+            color: #856404;
+        }
+
+        .price-warning strong {
+            color: #dc3545;
+        }
+
+        .teams-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .team-btn {
+            padding: 20px;
+            border: 3px solid #e0e0e0;
+            border-radius: 12px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .team-btn:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .team-btn .team-icon {
+            font-size: 32px;
+        }
+
+        .team-btn .team-name {
+            font-size: 18px;
+        }
+
+        .team-btn .team-count {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .team-btn .team-purse {
+            font-size: 13px;
+            color: #28a745;
+            font-weight: 700;
+            margin-top: 4px;
+        }
+
+        .team-btn .insufficient-funds {
+            color: #dc3545;
+        }
+
+        .team-btn.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            border-color: #dc3545;
+        }
+
+        .team-btn.disabled:hover {
+            transform: none;
+            box-shadow: none;
+            background: #fff5f5;
+            border-color: #dc3545;
+        }
+
+        .team-btn .team-slots {
+            font-size: 12px;
+            color: #17a2b8;
+            font-weight: 600;
+            margin-top: 2px;
+        }
+
+        .team-btn .team-full {
+            font-size: 12px;
+            color: #dc3545;
+            font-weight: 700;
+        }
+
+        .cancel-team-btn {
+            padding: 12px 30px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .cancel-team-btn:hover {
+            background: #c82333;
+        }
+
+        .teams-summary {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .teams-summary h3 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 22px;
+        }
+
+        .teams-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .team-summary-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            transition: transform 0.3s;
+        }
+
+        .team-summary-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .team-summary-card .team-icon-large {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+
+        .team-summary-card .team-name-large {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .team-summary-card .team-players-count {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .team-summary-card .team-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .team-summary-card .team-purse-remaining {
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .team-summary-card.team-complete {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+
+        .team-summary-card .complete-badge {
+            background: rgba(255, 255, 255, 0.3);
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-top: 8px;
+            display: inline-block;
+        }
+
+        @media (max-width: 768px) {
+            .teams-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .teams-row {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
         .loading-spinner {
             width: 60px;
             height: 60px;
@@ -540,6 +849,54 @@
             <p>Select a random player for auction</p>
         </div>
 
+        <div class="teams-summary" id="teamsSummary" style="display: none;">
+            <h3>📋 Team Rosters</h3>
+            <div class="teams-row">
+                <div class="team-summary-card" id="teamACard">
+                    <div class="team-icon-large">🔴</div>
+                    <div class="team-name-large">Team A</div>
+                    <div class="team-players-count" id="teamACount">0/11</div>
+                    <div class="team-label">Players</div>
+                    <div class="team-purse-remaining" id="teamAPurse">₹50,00,000</div>
+                </div>
+                <div class="team-summary-card" id="teamBCard">
+                    <div class="team-icon-large">🔵</div>
+                    <div class="team-name-large">Team B</div>
+                    <div class="team-players-count" id="teamBCount">0/11</div>
+                    <div class="team-label">Players</div>
+                    <div class="team-purse-remaining" id="teamBPurse">₹50,00,000</div>
+                </div>
+                <div class="team-summary-card" id="teamCCard">
+                    <div class="team-icon-large">🟢</div>
+                    <div class="team-name-large">Team C</div>
+                    <div class="team-players-count" id="teamCCount">0/11</div>
+                    <div class="team-label">Players</div>
+                    <div class="team-purse-remaining" id="teamCPurse">₹50,00,000</div>
+                </div>
+                <div class="team-summary-card" id="teamDCard">
+                    <div class="team-icon-large">🟡</div>
+                    <div class="team-name-large">Team D</div>
+                    <div class="team-players-count" id="teamDCount">0/11</div>
+                    <div class="team-label">Players</div>
+                    <div class="team-purse-remaining" id="teamDPurse">₹50,00,000</div>
+                </div>
+                <div class="team-summary-card" id="teamECard">
+                    <div class="team-icon-large">🟣</div>
+                    <div class="team-name-large">Team E</div>
+                    <div class="team-players-count" id="teamECount">0/11</div>
+                    <div class="team-label">Players</div>
+                    <div class="team-purse-remaining" id="teamEPurse">₹50,00,000</div>
+                </div>
+                <div class="team-summary-card" id="teamFCard">
+                    <div class="team-icon-large">🟠</div>
+                    <div class="team-name-large">Team F</div>
+                    <div class="team-players-count" id="teamFCount">0/11</div>
+                    <div class="team-label">Players</div>
+                    <div class="team-purse-remaining" id="teamFPurse">₹50,00,000</div>
+                </div>
+            </div>
+        </div>
+
         <div class="auction-progress" id="auctionProgress" style="display: none;">
             <div class="progress-header">
                 <h3>🎯 Auction Progress</h3>
@@ -589,6 +946,43 @@
         </div>
     </div>
 
+    <!-- Team Selection Popup -->
+    <div class="team-selection-overlay" id="teamSelectionOverlay">
+        <div class="team-selection-popup">
+            <h3>🎯 Player Sold!</h3>
+            <div class="player-mini" id="selectedPlayerInfo">
+                <!-- Player info will be inserted here -->
+            </div>
+
+            <div class="price-input-section">
+                <label for="sellingPrice">💰 Enter Selling Price:</label>
+                <div class="price-input-wrapper">
+                    <span class="currency">₹</span>
+                    <input 
+                        type="number" 
+                        id="sellingPrice" 
+                        placeholder="0"
+                        min="0"
+                        step="1000"
+                    >
+                </div>
+                <div class="price-helper">
+                    💡 Base price: ₹<span id="basePriceHelper">50,000</span>
+                </div>
+            </div>
+            
+            <p style="color: #666; margin-bottom: 20px; font-weight: 600;">Select which team bought this player:</p>
+            
+            <div class="teams-grid" id="teamsGrid">
+                <!-- Team buttons will be inserted here -->
+            </div>
+
+            <button class="cancel-team-btn" onclick="cancelTeamSelection()">
+                Cancel
+            </button>
+        </div>
+    </div>
+
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
@@ -616,6 +1010,32 @@
         let unsoldPlayers = [];
         let processedPlayerIds = new Set();
         let isAuctionActive = false;
+        const INITIAL_PURSE = 5000000; // 50 lakhs per team
+        const MAX_PLAYERS_PER_TEAM = 11; // Each team must buy 11 players
+        let teams = {
+            'Team A': [],
+            'Team B': [],
+            'Team C': [],
+            'Team D': [],
+            'Team E': [],
+            'Team F': []
+        };
+        let teamPurses = {
+            'Team A': INITIAL_PURSE,
+            'Team B': INITIAL_PURSE,
+            'Team C': INITIAL_PURSE,
+            'Team D': INITIAL_PURSE,
+            'Team E': INITIAL_PURSE,
+            'Team F': INITIAL_PURSE
+        };
+        const teamIcons = {
+            'Team A': '🔴',
+            'Team B': '🔵',
+            'Team C': '🟢',
+            'Team D': '🟡',
+            'Team E': '🟣',
+            'Team F': '🟠'
+        };
 
         const auctionDisplay = document.getElementById('auctionDisplay');
         const auctionProgress = document.getElementById('auctionProgress');
@@ -627,6 +1047,9 @@
         const unsoldCountSpan = document.getElementById('unsoldCount');
         const remainingCountSpan = document.getElementById('remainingCount');
         const progressBar = document.getElementById('progressBar');
+        const teamSelectionOverlay = document.getElementById('teamSelectionOverlay');
+        const selectedPlayerInfo = document.getElementById('selectedPlayerInfo');
+        const teamsGrid = document.getElementById('teamsGrid');
 
         // Load all players from Firebase
         function loadPlayers() {
@@ -672,10 +1095,29 @@
                 soldPlayers = [];
                 unsoldPlayers = [];
                 processedPlayerIds = new Set();
+                // Reset teams and purses
+                teams = {
+                    'Team A': [],
+                    'Team B': [],
+                    'Team C': [],
+                    'Team D': [],
+                    'Team E': [],
+                    'Team F': []
+                };
+                teamPurses = {
+                    'Team A': INITIAL_PURSE,
+                    'Team B': INITIAL_PURSE,
+                    'Team C': INITIAL_PURSE,
+                    'Team D': INITIAL_PURSE,
+                    'Team E': INITIAL_PURSE,
+                    'Team F': INITIAL_PURSE
+                };
 
-                // Show progress bar
+                // Show progress bar and teams summary
                 auctionProgress.style.display = 'block';
+                document.getElementById('teamsSummary').style.display = 'block';
                 updateProgress();
+                updateTeamCounts();
 
                 // Hide start button
                 startAuctionBtn.style.display = 'none';
@@ -726,21 +1168,172 @@
             updateProgress();
         }
 
-        // Mark player as sold
-        async function markAsSold() {
+        // Mark player as sold - show team selection
+        function markAsSold() {
             if (!currentPlayer) return;
 
-            soldPlayers.push(currentPlayer);
+            // Show player info in popup
+            const typeIcons = {
+                'Batter': '🏏',
+                'Bowler': '⚡',
+                'All-Rounder': '⭐'
+            };
+
+            const basePrice = currentPlayer.basePrice || 50000;
+
+            selectedPlayerInfo.innerHTML = `
+                <strong>${currentPlayer.name}</strong><br>
+                <span style="font-size: 16px; color: #666;">
+                    ${typeIcons[currentPlayer.type] || '⚽'} ${currentPlayer.type}
+                </span>
+            `;
+
+            // Set base price helper
+            document.getElementById('basePriceHelper').textContent = basePrice.toLocaleString('en-IN');
+
+            // Clear and focus on price input
+            const sellingPriceInput = document.getElementById('sellingPrice');
+            sellingPriceInput.value = basePrice; // Pre-fill with base price
+            
+            // Add event listener to update team buttons when price changes
+            sellingPriceInput.addEventListener('input', function() {
+                const price = parseInt(this.value) || 0;
+                updateTeamButtonStates(price);
+            });
+            
+            // Generate team buttons with purse info
+            teamsGrid.innerHTML = Object.keys(teams).map(teamName => {
+                const remainingPurse = teamPurses[teamName];
+                const teamPlayers = teams[teamName].length;
+                const canAfford = remainingPurse >= basePrice;
+                const teamFull = teamPlayers >= MAX_PLAYERS_PER_TEAM;
+                const isDisabled = !canAfford || teamFull;
+                
+                let statusMessage = '';
+                if (teamFull) {
+                    statusMessage = `<div class="team-full">✓ Team Complete (11/11)</div>`;
+                } else if (!canAfford) {
+                    statusMessage = `<div class="team-purse insufficient-funds">❌ ₹${remainingPurse.toLocaleString('en-IN')}</div>`;
+                } else {
+                    statusMessage = `<div class="team-purse">💰 ₹${remainingPurse.toLocaleString('en-IN')}</div>`;
+                }
+                
+                return `
+                    <button class="team-btn ${isDisabled ? 'disabled' : ''}" 
+                            onclick="${!isDisabled ? `assignPlayerToTeam('${teamName}')` : 'return false;'}"
+                            ${isDisabled ? 'disabled' : ''}>
+                        <div class="team-icon">${teamIcons[teamName]}</div>
+                        <div class="team-name">${teamName}</div>
+                        <div class="team-count">${teamPlayers}/11 players</div>
+                        ${statusMessage}
+                    </button>
+                `;
+            }).join('');
+
+            // Show overlay
+            teamSelectionOverlay.classList.add('show');
+            
+            // Focus on price input after a short delay
+            setTimeout(() => {
+                sellingPriceInput.focus();
+                sellingPriceInput.select();
+            }, 300);
+        }
+
+        // Assign player to team
+        async function assignPlayerToTeam(teamName) {
+            if (!currentPlayer) return;
+
+            // Get selling price
+            const sellingPriceInput = document.getElementById('sellingPrice');
+            const sellingPrice = parseInt(sellingPriceInput.value) || currentPlayer.basePrice || 50000;
+
+            // Validate price
+            if (sellingPrice <= 0) {
+                alert('Please enter a valid selling price');
+                sellingPriceInput.focus();
+                return;
+            }
+
+            // Check if team is full
+            if (teams[teamName].length >= MAX_PLAYERS_PER_TEAM) {
+                alert(`${teamName} is already full!\n\nThey have ${MAX_PLAYERS_PER_TEAM} players (maximum allowed).`);
+                return;
+            }
+
+            // Check if team has enough purse
+            if (teamPurses[teamName] < sellingPrice) {
+                alert(`${teamName} doesn't have enough purse!\n\nRemaining: ₹${teamPurses[teamName].toLocaleString('en-IN')}\nRequired: ₹${sellingPrice.toLocaleString('en-IN')}`);
+                return;
+            }
+
+            // Add player to team with selling price
+            const playerWithTeam = {
+                ...currentPlayer,
+                team: teamName,
+                sellingPrice: sellingPrice,
+                teamAssignedAt: new Date().toISOString()
+            };
+
+            teams[teamName].push(playerWithTeam);
+            soldPlayers.push(playerWithTeam);
             processedPlayerIds.add(currentPlayer.id);
+
+            // Deduct from team purse
+            teamPurses[teamName] -= sellingPrice;
             
             // Save to Firebase
             await database.ref('players/' + currentPlayer.id).update({
                 auctionStatus: 'sold',
+                team: teamName,
+                sellingPrice: sellingPrice,
                 soldAt: new Date().toISOString()
             });
 
+            // Hide overlay
+            teamSelectionOverlay.classList.remove('show');
+
+            // Update team counts
+            updateTeamCounts();
+
             // Show next player
             await showNextPlayer();
+        }
+
+        // Update team button states based on price
+        function updateTeamButtonStates(price) {
+            teamsGrid.innerHTML = Object.keys(teams).map(teamName => {
+                const remainingPurse = teamPurses[teamName];
+                const teamPlayers = teams[teamName].length;
+                const canAfford = remainingPurse >= price;
+                const teamFull = teamPlayers >= MAX_PLAYERS_PER_TEAM;
+                const isDisabled = !canAfford || teamFull;
+                
+                let statusMessage = '';
+                if (teamFull) {
+                    statusMessage = `<div class="team-full">✓ Team Complete (11/11)</div>`;
+                } else if (!canAfford) {
+                    statusMessage = `<div class="team-purse insufficient-funds">❌ ₹${remainingPurse.toLocaleString('en-IN')}</div>`;
+                } else {
+                    statusMessage = `<div class="team-purse">💰 ₹${remainingPurse.toLocaleString('en-IN')}</div>`;
+                }
+                
+                return `
+                    <button class="team-btn ${isDisabled ? 'disabled' : ''}" 
+                            onclick="${!isDisabled ? `assignPlayerToTeam('${teamName}')` : 'return false;'}"
+                            ${isDisabled ? 'disabled' : ''}>
+                        <div class="team-icon">${teamIcons[teamName]}</div>
+                        <div class="team-name">${teamName}</div>
+                        <div class="team-count">${teamPlayers}/11 players</div>
+                        ${statusMessage}
+                    </button>
+                `;
+            }).join('');
+        }
+
+        // Cancel team selection
+        function cancelTeamSelection() {
+            teamSelectionOverlay.classList.remove('show');
         }
 
         // Mark player as unsold
@@ -783,6 +1376,40 @@
             progressBar.textContent = percentage + '%';
         }
 
+        // Update team counts and purses
+        function updateTeamCounts() {
+            // Update counts and purses
+            const teamNames = ['Team A', 'Team B', 'Team C', 'Team D', 'Team E', 'Team F'];
+            const teamIds = ['teamA', 'teamB', 'teamC', 'teamD', 'teamE', 'teamF'];
+            
+            teamNames.forEach((teamName, index) => {
+                const teamId = teamIds[index];
+                const playerCount = teams[teamName].length;
+                const isComplete = playerCount >= MAX_PLAYERS_PER_TEAM;
+                
+                // Update count
+                document.getElementById(teamId + 'Count').textContent = playerCount + '/11';
+                
+                // Update purse
+                document.getElementById(teamId + 'Purse').textContent = '₹' + teamPurses[teamName].toLocaleString('en-IN');
+                
+                // Add complete badge if team is full
+                const card = document.getElementById(teamId + 'Card');
+                if (isComplete) {
+                    card.classList.add('team-complete');
+                    // Add complete badge if not already present
+                    if (!card.querySelector('.complete-badge')) {
+                        const purseDiv = document.getElementById(teamId + 'Purse');
+                        purseDiv.insertAdjacentHTML('afterend', '<div class="complete-badge">✓ COMPLETE</div>');
+                    }
+                } else {
+                    card.classList.remove('team-complete');
+                    const badge = card.querySelector('.complete-badge');
+                    if (badge) badge.remove();
+                }
+            });
+        }
+
         // Show auction complete
         function showAuctionComplete() {
             isAuctionActive = false;
@@ -810,6 +1437,30 @@
                             <span class="summary-label">💰 Total Base Value:</span>
                             <span class="summary-value">₹${(allPlayers.length * 50000).toLocaleString('en-IN')}</span>
                         </div>
+                        <div class="summary-item">
+                            <span class="summary-label">💸 Total Selling Value:</span>
+                            <span class="summary-value" style="color: #28a745">₹${soldPlayers.reduce((sum, p) => sum + (p.sellingPrice || 50000), 0).toLocaleString('en-IN')}</span>
+                        </div>
+                    </div>
+
+                    <h3 style="color: #333; margin: 30px 0 20px 0; font-size: 24px;">📋 Final Team Rosters</h3>
+                    <div class="auction-summary" style="text-align: left;">
+                        ${Object.keys(teams).map(teamName => {
+                            const teamPlayers = teams[teamName];
+                            const teamValue = teamPlayers.reduce((sum, p) => sum + (p.sellingPrice || 50000), 0);
+                            const remainingPurse = teamPurses[teamName];
+                            const isComplete = teamPlayers.length >= MAX_PLAYERS_PER_TEAM;
+                            return `
+                                <div class="summary-item">
+                                    <span class="summary-label">${teamIcons[teamName]} ${teamName}:</span>
+                                    <span class="summary-value" style="color: ${isComplete ? '#28a745' : '#dc3545'}">
+                                        ${teamPlayers.length}/${MAX_PLAYERS_PER_TEAM} players ${isComplete ? '✓' : '❌'} - 
+                                        Spent: ₹${teamValue.toLocaleString('en-IN')} - 
+                                        Remaining: ₹${remainingPurse.toLocaleString('en-IN')}
+                                    </span>
+                                </div>
+                            `;
+                        }).join('')}
                     </div>
 
                     <div class="button-group" style="margin-top: 30px;">
@@ -835,7 +1486,26 @@
             unsoldPlayers = [];
             processedPlayerIds = new Set();
             
+            // Reset teams and purses
+            teams = {
+                'Team A': [],
+                'Team B': [],
+                'Team C': [],
+                'Team D': [],
+                'Team E': [],
+                'Team F': []
+            };
+            teamPurses = {
+                'Team A': INITIAL_PURSE,
+                'Team B': INITIAL_PURSE,
+                'Team C': INITIAL_PURSE,
+                'Team D': INITIAL_PURSE,
+                'Team E': INITIAL_PURSE,
+                'Team F': INITIAL_PURSE
+            };
+            
             auctionProgress.style.display = 'none';
+            document.getElementById('teamsSummary').style.display = 'none';
             startAuctionBtn.style.display = 'flex';
             startAuctionBtn.disabled = false;
             startAuctionBtn.innerHTML = '<span>🎯</span><span>Start Auction</span>';
@@ -929,11 +1599,11 @@
                     </div>
 
                     <div class="auction-actions">
-                        <button class="btn btn-success btn-large" onclick="markAsSold()">
+                        <button class="btn btn-success btn-large" onclick="markAsSold()" id="soldBtn">
                             <span>✅</span>
                             <span>SOLD</span>
                         </button>
-                        <button class="btn btn-warning btn-large" onclick="markAsUnsold()">
+                        <button class="btn btn-warning btn-large" onclick="markAsUnsold()" id="unsoldBtn">
                             <span>❌</span>
                             <span>UNSOLD</span>
                         </button>
