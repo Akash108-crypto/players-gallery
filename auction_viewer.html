@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Auction Viewer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .header h1 {
+            font-size: 48px;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .live-badge {
+            display: inline-block;
+            background: #dc3545;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: 600;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .teams-summary {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .teams-summary h2 {
+            color: #333;
+            margin-bottom: 25px;
+            font-size: 28px;
+            text-align: center;
+        }
+
+        .teams-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .team-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            transition: transform 0.3s;
+            cursor: pointer;
+        }
+
+        .team-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.5);
+        }
+
+        .team-card.complete {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+
+        .team-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .team-name {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .team-count {
+            font-size: 32px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .team-spent {
+            font-size: 16px;
+            opacity: 0.9;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .current-auction {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .waiting-message {
+            color: #999;
+        }
+
+        .waiting-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+
+        .player-display {
+            width: 100%;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .player-image-large {
+            width: 200px;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 6px solid #667eea;
+            margin: 0 auto 20px;
+            display: block;
+        }
+
+        .player-placeholder {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            border: 6px solid #e0e0e0;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f8f9fa;
+            font-size: 80px;
+            color: #ccc;
+        }
+
+        .player-name {
+            font-size: 36px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .player-type {
+            display: inline-block;
+            padding: 10px 25px;
+            border-radius: 25px;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .type-batter { background: #ffc107; color: #000; }
+        .type-bowler { background: #17a2b8; color: white; }
+        .type-all-rounder { background: #28a745; color: white; }
+
+        .base-price {
+            background: #fff3cd;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+
+        .base-price-label {
+            font-size: 16px;
+            color: #856404;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .base-price-amount {
+            font-size: 36px;
+            font-weight: bold;
+            color: #000;
+        }
+
+        /* Team Details Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 800px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .modal-header h2 {
+            color: #333;
+            font-size: 32px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .close-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .close-btn:hover {
+            background: #c82333;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-box {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .players-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .players-table thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .players-table th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .players-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .players-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .empty-team {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .refresh-note {
+            text-align: center;
+            color: white;
+            margin-top: 20px;
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 { font-size: 32px; }
+            .teams-grid { grid-template-columns: repeat(2, 1fr); }
+            .current-auction { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏏 Live Player Auction</h1>
+            <div class="live-badge">🔴 LIVE</div>
+        </div>
+
+        <div class="current-auction" id="currentAuction">
+            <div class="waiting-message">
+                <div class="waiting-icon">🏏</div>
+                <h2>Waiting for Auction to Start</h2>
+                <p>The auction will begin shortly...</p>
+            </div>
+        </div>
+
+        <div class="teams-summary">
+            <h2>📋 Team Rosters (Live Updates)</h2>
+            <div class="teams-grid" id="teamsGrid">
+                <!-- Teams will be loaded here -->
+            </div>
+        </div>
+
+        <div class="refresh-note">
+            📡 Auto-refreshing every 3 seconds for live updates
+        </div>
+    </div>
+
+    <!-- Team Details Modal -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>
+                    <span id="modalTeamIcon">🔴</span>
+                    <span id="modalTeamName">Team A</span>
+                </h2>
+                <button class="close-btn" onclick="closeModal()">✕ Close</button>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-label">Total Players</div>
+                    <div class="stat-value" id="modalPlayerCount">0/11</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Total Spent</div>
+                    <div class="stat-value" id="modalTotalSpent">₹0</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Purse Remaining</div>
+                    <div class="stat-value" id="modalPurseRemaining">₹50,00,000</div>
+                </div>
+            </div>
+
+            <div id="modalPlayersContent">
+                <!-- Players table will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCsLHmg5LnYVtPVLHM0DYEelsvZeLLSuVM",
+            authDomain: "players-gallery-3f0f4.firebaseapp.com",
+            projectId: "players-gallery-3f0f4",
+            storageBucket: "players-gallery-3f0f4.firebasestorage.app",
+            messagingSenderId: "481537498800",
+            appId: "1:481537498800:web:3812c4ea9df4adcdf06575",
+            databaseURL: "https://players-gallery-3f0f4-default-rtdb.asia-southeast1.firebasedatabase.app"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        const teamIcons = {
+            'Team A': '🔴',
+            'Team B': '🔵',
+            'Team C': '🟢',
+            'Team D': '🟡',
+            'Team E': '🟣',
+            'Team F': '🟠'
+        };
+
+        const INITIAL_PURSE = 5000000;
+        let teamsData = {};
+        let currentViewingTeam = null;
+
+        // Load all players and organize by team
+        function loadTeamsData() {
+            database.ref('players').on('value', (snapshot) => {
+                // Reset teams
+                teamsData = {
+                    'Team A': [],
+                    'Team B': [],
+                    'Team C': [],
+                    'Team D': [],
+                    'Team E': [],
+                    'Team F': []
+                };
+
+                // Organize players by team
+                snapshot.forEach((childSnapshot) => {
+                    const player = childSnapshot.val();
+                    if (player.team && player.auctionStatus === 'sold') {
+                        teamsData[player.team].push(player);
+                    }
+                });
+
+                // Update UI
+                renderTeams();
+                
+                // If modal is open, refresh it
+                if (currentViewingTeam) {
+                    showTeamDetails(currentViewingTeam);
+                }
+            });
+        }
+
+        // Render teams grid
+        function renderTeams() {
+            const teamsGrid = document.getElementById('teamsGrid');
+            
+            teamsGrid.innerHTML = Object.keys(teamsData).map(teamName => {
+                const players = teamsData[teamName];
+                const playerCount = players.length;
+                const totalSpent = players.reduce((sum, p) => sum + (p.sellingPrice || 50000), 0);
+                const isComplete = playerCount >= 11;
+                
+                return `
+                    <div class="team-card ${isComplete ? 'complete' : ''}" onclick="showTeamDetails('${teamName}')">
+                        <div class="team-icon">${teamIcons[teamName]}</div>
+                        <div class="team-name">${teamName}</div>
+                        <div class="team-count">${playerCount}/11</div>
+                        <div style="font-size: 14px; opacity: 0.9;">Players</div>
+                        <div class="team-spent">
+                            Spent: ₹${totalSpent.toLocaleString('en-IN')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Show team details in modal
+        function showTeamDetails(teamName) {
+            currentViewingTeam = teamName;
+            const players = teamsData[teamName];
+            const totalSpent = players.reduce((sum, p) => sum + (p.sellingPrice || 50000), 0);
+            const purseRemaining = INITIAL_PURSE - totalSpent;
+
+            // Update modal header
+            document.getElementById('modalTeamIcon').textContent = teamIcons[teamName];
+            document.getElementById('modalTeamName').textContent = teamName;
+
+            // Update stats
+            document.getElementById('modalPlayerCount').textContent = `${players.length}/11`;
+            document.getElementById('modalTotalSpent').textContent = '₹' + totalSpent.toLocaleString('en-IN');
+            document.getElementById('modalPurseRemaining').textContent = '₹' + purseRemaining.toLocaleString('en-IN');
+
+            // Update players table
+            const modalPlayersContent = document.getElementById('modalPlayersContent');
+            
+            if (players.length === 0) {
+                modalPlayersContent.innerHTML = `
+                    <div class="empty-team">
+                        <div style="font-size: 60px; margin-bottom: 15px;">🏏</div>
+                        <h3>No Players Yet</h3>
+                        <p>This team hasn't bought any players</p>
+                    </div>
+                `;
+            } else {
+                const typeIcons = {
+                    'Batter': '🏏',
+                    'Bowler': '⚡',
+                    'All-Rounder': '⭐'
+                };
+
+                modalPlayersContent.innerHTML = `
+                    <table class="players-table">
+                        <thead>
+                            <tr>
+                                <th>Player</th>
+                                <th>Category</th>
+                                <th>Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${players.map((player, index) => `
+                                <tr>
+                                    <td><strong>${index + 1}. ${player.name}</strong></td>
+                                    <td>${typeIcons[player.type] || '⚽'} ${player.type}</td>
+                                    <td><strong>₹${(player.sellingPrice || 50000).toLocaleString('en-IN')}</strong></td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            }
+
+            // Show modal
+            document.getElementById('modalOverlay').classList.add('show');
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.remove('show');
+            currentViewingTeam = null;
+        }
+
+        // Initialize
+        loadTeamsData();
+
+        // Auto refresh message
+        console.log('🔴 Live auction viewer - Updates automatically via Firebase');
+    </script>
+</body>
+</html>

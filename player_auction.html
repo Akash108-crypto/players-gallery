@@ -1591,24 +1591,12 @@
             }).join('');
         }
 
-        // Update increment buttons based on current price
+        // Update increment buttons - Fixed at 25K, 50K, 100K
         function updateIncrementButtons() {
-            const sellingPriceInput = document.getElementById('sellingPrice');
-            const currentPrice = parseInt(sellingPriceInput.value) || 50000;
             const incrementButtons = document.getElementById('incrementButtons');
             
-            let increments = [];
-            
-            if (currentPrice < 200000) {
-                // 50k to 2L: increment by 25K
-                increments = [25000, 50000, 100000];
-            } else if (currentPrice < 500000) {
-                // 2L to 5L: increment by 50K
-                increments = [50000, 100000, 200000];
-            } else {
-                // 5L onwards: increment by 1L
-                increments = [100000, 200000, 500000];
-            }
+            // Fixed increments: 25K, 50K, 100K
+            const increments = [25000, 50000, 100000];
             
             incrementButtons.innerHTML = increments.map(inc => `
                 <button class="increment-btn" onclick="incrementPrice(${inc})">
