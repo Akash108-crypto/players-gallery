@@ -76,7 +76,6 @@
 
         input[type="text"],
         input[type="tel"],
-        input[type="email"],
         select {
             width: 100%;
             padding: 14px 16px;
@@ -89,7 +88,6 @@
 
         input[type="text"]:focus,
         input[type="tel"]:focus,
-        input[type="email"]:focus,
         select:focus {
             outline: none;
             border-color: #667eea;
@@ -382,6 +380,61 @@
                 padding: 15px;
             }
         }
+
+        .import-section {
+            margin-top: 35px;
+            padding-top: 25px;
+            border-top: 2px solid #e0e0e0;
+            text-align: left;
+        }
+        .import-section h3 {
+            color: #333;
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+        .import-section p {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+        .import-section a {
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: inline-block;
+        }
+        .import-sheet-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .import-sheet-btn:hover {
+            background: #218838;
+        }
+        .import-sheet-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        #importStatus {
+            margin-top: 12px;
+            font-size: 14px;
+            color: #333;
+        }
+        .import-preview {
+            margin-top: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 13px;
+        }
     </style>
 </head>
 <body>
@@ -419,19 +472,6 @@
                     <option value="Bowler">⚡ Bowler</option>
                     <option value="All-Rounder">⭐ All-Rounder</option>
                 </select>
-            </div>
-
-            <div class="form-group">
-                <label for="playerEmail">
-                    Email Address <span class="required">*</span>
-                </label>
-                <input 
-                    type="email" 
-                    id="playerEmail" 
-                    placeholder="Enter your email address"
-                    required
-                    autocomplete="email"
-                >
             </div>
 
             <div class="form-group">
@@ -474,6 +514,15 @@
 
         <div class="view-gallery-link">
             <a href="players_gallery.html" target="_blank">👁️ View Players Gallery</a>
+        </div>
+
+        <div class="import-section">
+            <h3>📥 Import from Google Sheet</h3>
+            <p>Load players from the registration sheet. Sheet must be <strong>Published to web</strong> (File → Share → Publish to web).</p>
+            <a href="https://docs.google.com/spreadsheets/d/e/2PACX-1vQPypcKMm2ZcSJZDnTa4EHTa1nUEU2ogIIKjLFChlC4QW0MwbDXsLEGLXbw_0APk9RWiBlJIT7IldsX/pubhtml?gid=710296909&single=true" target="_blank" rel="noopener">Open sheet ↗</a>
+            <button type="button" class="import-sheet-btn" id="importSheetBtn">Import players from sheet</button>
+            <div id="importStatus"></div>
+            <div id="importPreview" class="import-preview"></div>
         </div>
     </div>
 
@@ -522,7 +571,6 @@
 
         const playerNameInput = document.getElementById('playerName');
         const playerTypeSelect = document.getElementById('playerType');
-        const playerEmailInput = document.getElementById('playerEmail');
         const playerMobileInput = document.getElementById('playerMobile');
         const playerImageInput = document.getElementById('playerImage');
         const filePreview = document.getElementById('filePreview');
@@ -626,7 +674,6 @@
             
             const name = playerNameInput.value.trim();
             const type = playerTypeSelect.value;
-            const email = playerEmailInput.value.trim();
             const mobile = playerMobileInput.value.trim();
             
             if (!name) {
@@ -636,18 +683,6 @@
 
             if (!type) {
                 alert('Please select player type');
-                return;
-            }
-
-            if (!email) {
-                alert('Please enter email address');
-                return;
-            }
-
-            // Validate email format
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(email)) {
-                alert('Please enter a valid email address');
                 return;
             }
 
@@ -678,8 +713,7 @@
                     id: playerId,
                     name: name,
                     type: type,
-                    email: email,
-                    mobile: mobile,
+                    mobile: mobile || '',
                     image: imageUrl,
                     basePrice: 50000, // Base auction price
                     timestamp: new Date().toISOString()
@@ -706,7 +740,6 @@
                     playerDetailsPopup.innerHTML = `
                         <p><strong>Name:</strong> ${name}</p>
                         <p><strong>Type:</strong> ${typeIcons[type] || '⚽'} ${type}</p>
-                        <p><strong>Email:</strong> ${email}</p>
                         ${mobile ? `<p><strong>Mobile:</strong> ${mobile}</p>` : ''}
                     `;
 
@@ -729,6 +762,135 @@
 
         // Auto-focus on name input
         playerNameInput.focus();
+
+        // --- Import from Google Sheet (published sheet: Form Responses 1, gid=710296909) ---
+        const SHEET_CSV_URLS = [
+            'https://docs.google.com/spreadsheets/d/e/2PACX-1vQPypcKMm2ZcSJZDnTa4EHTa1nUEU2ogIIKjLFChlC4QW0MwbDXsLEGLXbw_0APk9RWiBlJIT7IldsX/pub?output=csv&gid=710296909',
+            'https://docs.google.com/spreadsheets/d/1X2SkK-ZPBw0wxLaP-lfUaeZpWFn7sWrRzkFEn2RxhVM/export?format=csv&gid=710296909'
+        ];
+        const CORS_PROXY = 'https://api.allorigins.win/raw?url=';
+        const importSheetBtn = document.getElementById('importSheetBtn');
+        const importStatus = document.getElementById('importStatus');
+        const importPreview = document.getElementById('importPreview');
+
+        function parseCSV(text) {
+            const lines = text.trim().split(/\r?\n/).filter(l => l.trim());
+            if (lines.length < 2) return { headers: [], rows: [] };
+            function splitRow(line) {
+                const out = [];
+                let cur = '';
+                let inQuotes = false;
+                for (let i = 0; i < line.length; i++) {
+                    const c = line[i];
+                    if (c === '"') {
+                        inQuotes = !inQuotes;
+                    } else if ((c === ',' && !inQuotes) || (c === '\n' && !inQuotes)) {
+                        out.push(cur.trim().replace(/^"|"$/g, '').replace(/""/g, '"'));
+                        cur = '';
+                    } else {
+                        cur += c;
+                    }
+                }
+                out.push(cur.trim().replace(/^"|"$/g, '').replace(/""/g, '"'));
+                return out;
+            }
+            const headers = splitRow(lines[0]).map(h => h.toLowerCase().trim());
+            const rows = [];
+            for (let i = 1; i < lines.length; i++) {
+                const vals = splitRow(lines[i]);
+                const obj = {};
+                headers.forEach((h, j) => { obj[h] = (vals[j] || '').trim(); });
+                rows.push(obj);
+            }
+            return { headers, rows };
+        }
+
+        function findCol(obj, ...names) {
+            const keys = Object.keys(obj);
+            for (const n of names) {
+                const k = keys.find(x => x.toLowerCase().includes(n.toLowerCase()));
+                if (k) return (obj[k] || '').trim();
+            }
+            return '';
+        }
+
+        function normalizeType(t) {
+            const s = (t || '').toLowerCase();
+            if (s.includes('batter') || s === 'bat') return 'Batter';
+            if (s.includes('bowler') || s === 'bowl') return 'Bowler';
+            if (s.includes('all') || s.includes('rounder')) return 'All-Rounder';
+            return t ? (t.charAt(0).toUpperCase() + t.slice(1).toLowerCase()) : 'Batter';
+        }
+
+        // Convert Google Drive share link to direct image URL for display
+        function driveUrlToDirect(url) {
+            if (!url || !url.trim()) return null;
+            const m = url.match(/drive\.google\.com\/open\?id=([a-zA-Z0-9_-]+)/) || url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/) || url.match(/id=([a-zA-Z0-9_-]+)/);
+            if (m) return 'https://drive.google.com/uc?export=view&id=' + m[1];
+            return url.trim();
+        }
+
+        importSheetBtn.addEventListener('click', async function() {
+            importSheetBtn.disabled = true;
+            importStatus.textContent = 'Loading sheet...';
+            importPreview.innerHTML = '';
+            try {
+                let res = null;
+                let lastErr = null;
+                for (const sheetUrl of SHEET_CSV_URLS) {
+                    try {
+                        res = await fetch(CORS_PROXY + encodeURIComponent(sheetUrl));
+                        if (res.ok) break;
+                    } catch (e) { lastErr = e; }
+                }
+                if (!res || !res.ok) throw lastErr || new Error('Could not load sheet. Ensure the sheet is published to web (File → Share → Publish to web).');
+                const text = await res.text();
+                const { headers, rows } = parseCSV(text);
+                if (rows.length === 0) {
+                    importStatus.textContent = 'No data rows found in the sheet.';
+                    importSheetBtn.disabled = false;
+                    return;
+                }
+                const players = rows.map(r => {
+                    const name = findCol(r, 'name', 'player', 'full name');
+                    if (!name) return null;
+                    const type = normalizeType(findCol(r, 'category', 'type', 'player type', 'role'));
+                    const mobile = findCol(r, 'mobile', 'phone', 'contact', 'number');
+                    const imageUrl = driveUrlToDirect(findCol(r, 'image', 'photo', 'picture', 'img'));
+                    return { name, type, mobile, image: imageUrl };
+                }).filter(Boolean);
+                if (players.length === 0) {
+                    importStatus.textContent = 'No rows with a name column found. Use headers like Name, Type, Mobile.';
+                    importSheetBtn.disabled = false;
+                    return;
+                }
+                importPreview.innerHTML = '<strong>Found ' + players.length + ' players:</strong><br>' +
+                    players.slice(0, 15).map(p => p.name + ' (' + p.type + ')').join('<br>') +
+                    (players.length > 15 ? '<br>...' : '');
+                importStatus.textContent = 'Adding ' + players.length + ' players to Firebase...';
+                let added = 0;
+                for (const p of players) {
+                    const playerId = database.ref().child('players').push().key;
+                    await database.ref('players/' + playerId).set({
+                        id: playerId,
+                        name: p.name,
+                        type: p.type || 'Batter',
+                        mobile: p.mobile || '',
+                        image: p.image || null,
+                        basePrice: 50000,
+                        timestamp: new Date().toISOString()
+                    });
+                    added++;
+                }
+                importStatus.textContent = 'Added ' + added + ' players. Names, Category, Mobile and image links from the sheet are imported.';
+                importPreview.innerHTML += '<br><br>✅ Import complete.';
+            } catch (err) {
+                console.error(err);
+                importStatus.textContent = 'Error: ' + (err.message || err);
+                importPreview.innerHTML = '';
+            }
+            importSheetBtn.disabled = false;
+        });
     </script>
 </body>
 </html>
