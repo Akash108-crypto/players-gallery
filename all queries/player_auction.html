@@ -861,6 +861,130 @@
             transform: translateY(0);
         }
 
+        /* Team Setup Overlay - set team names before auction */
+        .team-setup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .team-setup-overlay.hidden {
+            display: none;
+        }
+
+        .team-setup-popup {
+            background: white;
+            border-radius: 20px;
+            padding: 35px;
+            max-width: 700px;
+            width: 95%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .team-setup-popup h2 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 26px;
+        }
+
+        .team-setup-popup p {
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .team-setup-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 80px;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .team-setup-row label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 2px;
+        }
+
+        .team-setup-row input,
+        .team-setup-row select {
+            padding: 10px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .team-setup-row input:focus,
+        .team-setup-row select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .team-setup-actions {
+            margin-top: 24px;
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .team-setup-actions button {
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+
+        .team-setup-save {
+            background: #667eea;
+            color: white;
+        }
+
+        .team-setup-save:hover {
+            background: #5568d3;
+        }
+
+        .team-setup-add {
+            background: #28a745;
+            color: white;
+        }
+
+        .team-setup-add:hover {
+            background: #218838;
+        }
+
+        .team-setup-remove {
+            background: #dc3545;
+            color: white;
+            padding: 8px 14px;
+            font-size: 14px;
+        }
+
+        .team-setup-remove:hover {
+            background: #c82333;
+        }
+
+        @media (max-width: 600px) {
+            .team-setup-row {
+                grid-template-columns: 1fr 1fr;
+            }
+            .team-setup-row .team-setup-remove { grid-column: 1 / -1; }
+        }
+
         /* Team Details Modal */
         .team-details-overlay {
             position: fixed;
@@ -1281,57 +1405,23 @@
             <p>Select a random player for auction</p>
         </div>
 
+        <!-- Team Setup: shown on first load so you can set team names -->
+        <div class="team-setup-overlay" id="teamSetupOverlay">
+            <div class="team-setup-popup">
+                <h2>🏏 Set up teams</h2>
+                <p>Enter team names (and optional owner names). These will be used for the auction. You can change them later by clearing teams and re-opening this page after refreshing.</p>
+                <div id="teamSetupRows"></div>
+                <div class="team-setup-actions">
+                    <button type="button" class="team-setup-add" onclick="addTeamSetupRow()">+ Add team</button>
+                    <button type="button" class="team-setup-save" onclick="saveTeamConfig()">Save & continue</button>
+                </div>
+            </div>
+        </div>
+
         <div class="teams-summary" id="teamsSummary" style="display: none;">
             <h3>📋 Team Rosters</h3>
-            <div class="teams-row">
-                <div class="team-summary-card" id="teamACard" onclick="showTeamDetails('HR Tigers')">
-                    <div class="team-icon-large">🐯</div>
-                    <div class="team-name-large">HR Tigers</div>
-                    <div style="font-size: 11px; color: #666; margin-top: 2px;">Hemant Gangurde</div>
-                    <div class="team-players-count" id="teamACount">0/12</div>
-                    <div class="team-label">Players</div>
-                    <div class="team-purse-remaining" id="teamAPurse">₹1,00,00,000</div>
-                </div>
-                <div class="team-summary-card" id="teamBCard" onclick="showTeamDetails('CBG Panthers')">
-                    <div class="team-icon-large">🐆</div>
-                    <div class="team-name-large">CBG Panthers</div>
-                    <div style="font-size: 11px; color: #666; margin-top: 2px;">Deepak Mangla</div>
-                    <div class="team-players-count" id="teamBCount">0/12</div>
-                    <div class="team-label">Players</div>
-                    <div class="team-purse-remaining" id="teamBPurse">₹1,00,00,000</div>
-                </div>
-                <div class="team-summary-card" id="teamCCard" onclick="showTeamDetails('Krishna Warriors')">
-                    <div class="team-icon-large">⚔️</div>
-                    <div class="team-name-large">Krishna Warriors</div>
-                    <div style="font-size: 11px; color: #666; margin-top: 2px;">Krishna Yadav</div>
-                    <div class="team-players-count" id="teamCCount">0/12</div>
-                    <div class="team-label">Players</div>
-                    <div class="team-purse-remaining" id="teamCPurse">₹1,00,00,000</div>
-                </div>
-                <div class="team-summary-card" id="teamDCard" onclick="showTeamDetails('Victory Vipers')">
-                    <div class="team-icon-large">🐍</div>
-                    <div class="team-name-large">Victory Vipers</div>
-                    <div style="font-size: 11px; color: #666; margin-top: 2px;">Rahul Mhoparekar</div>
-                    <div class="team-players-count" id="teamDCount">0/12</div>
-                    <div class="team-label">Players</div>
-                    <div class="team-purse-remaining" id="teamDPurse">₹1,00,00,000</div>
-                </div>
-                <div class="team-summary-card" id="teamECard" onclick="showTeamDetails('Shiv Shambhu')">
-                    <div class="team-icon-large">🔱</div>
-                    <div class="team-name-large">Shiv Shambhu</div>
-                    <div style="font-size: 11px; color: #666; margin-top: 2px;">Sandeep Dumbre</div>
-                    <div class="team-players-count" id="teamECount">0/12</div>
-                    <div class="team-label">Players</div>
-                    <div class="team-purse-remaining" id="teamEPurse">₹1,00,00,000</div>
-                </div>
-                <div class="team-summary-card" id="teamFCard" onclick="showTeamDetails('Subbu Strikers')">
-                    <div class="team-icon-large">⚡</div>
-                    <div class="team-name-large">Subbu Strikers</div>
-                    <div style="font-size: 11px; color: #666; margin-top: 2px;">Subbu</div>
-                    <div class="team-players-count" id="teamFCount">0/12</div>
-                    <div class="team-label">Players</div>
-                    <div class="team-purse-remaining" id="teamFPurse">₹1,00,00,000</div>
-                </div>
+            <div class="teams-row" id="teamsRow">
+                <!-- Team cards rendered by JS from config -->
             </div>
         </div>
 
@@ -1523,38 +1613,12 @@
         let isAuctionActive = false;
         const INITIAL_PURSE = 10000000; // 1 crore per team
         const MAX_PLAYERS_PER_TEAM = 12; // Each team must buy 12 players
-        let teams = {
-            'HR Tigers': [],
-            'CBG Panthers': [],
-            'Krishna Warriors': [],
-            'Victory Vipers': [],
-            'Shiv Shambhu': [],
-            'Subbu Strikers': []
-        };
-        let teamPurses = {
-            'HR Tigers': INITIAL_PURSE,
-            'CBG Panthers': INITIAL_PURSE,
-            'Krishna Warriors': INITIAL_PURSE,
-            'Victory Vipers': INITIAL_PURSE,
-            'Shiv Shambhu': INITIAL_PURSE,
-            'Subbu Strikers': INITIAL_PURSE
-        };
-        const teamOwners = {
-            'HR Tigers': 'Hemant Gangurde',
-            'CBG Panthers': 'Deepak Mangla',
-            'Krishna Warriors': 'Krishna Yadav',
-            'Victory Vipers': 'Rahul Mhoparekar',
-            'Shiv Shambhu': 'Sandeep Dumbre',
-            'Subbu Strikers': 'Subbu'
-        };
-        const teamIcons = {
-            'HR Tigers': '🐯',
-            'CBG Panthers': '🐆',
-            'Krishna Warriors': '⚔️',
-            'Victory Vipers': '🐍',
-            'Shiv Shambhu': '🔱',
-            'Subbu Strikers': '⚡'
-        };
+        const TEAM_ICONS_OPTIONS = ['🐯', '🐆', '⚔️', '🐍', '🔱', '⚡', '🦁', '🐻', '🦅', '🏹'];
+        let teamConfig = []; // Loaded from Firebase config/teams: [{ name, owner, icon }, ...]
+        let teams = {};
+        let teamPurses = {};
+        let teamOwners = {};
+        let teamIcons = {};
 
         const auctionDisplay = document.getElementById('auctionDisplay');
         const auctionProgress = document.getElementById('auctionProgress');
@@ -1573,6 +1637,133 @@
         const teamDetailsOverlay = document.getElementById('teamDetailsOverlay');
         let currentViewingTeam = null;
         const ADMIN_PASSWORD = 'Akash@2001';
+
+        // --- Team config: load from Firebase or show setup to enter team names ---
+        function buildTeamsFromConfig() {
+            teams = {};
+            teamPurses = {};
+            teamOwners = {};
+            teamIcons = {};
+            (teamConfig || []).forEach(t => {
+                const name = (t.name || '').trim();
+                if (!name) return;
+                teams[name] = [];
+                teamPurses[name] = INITIAL_PURSE;
+                teamOwners[name] = t.owner || '';
+                teamIcons[name] = t.icon || '🔴';
+            });
+        }
+
+        function renderTeamSummaryCards() {
+            const row = document.getElementById('teamsRow');
+            if (!row) return;
+            row.innerHTML = Object.keys(teams).map(teamName => `
+                <div class="team-summary-card" data-team-name="${teamName.replace(/"/g, '&quot;')}" onclick="showTeamDetails('${teamName.replace(/'/g, "\\'")}')">
+                    <div class="team-icon-large">${teamIcons[teamName] || '🔴'}</div>
+                    <div class="team-name-large">${teamName}</div>
+                    ${teamOwners[teamName] ? `<div style="font-size: 11px; color: #666; margin-top: 2px;">${teamOwners[teamName]}</div>` : ''}
+                    <div class="team-players-count" data-team-count>0/12</div>
+                    <div class="team-label">Players</div>
+                    <div class="team-purse-remaining" data-team-purse>₹${INITIAL_PURSE.toLocaleString('en-IN')}</div>
+                </div>
+            `).join('');
+        }
+
+        function loadTeamConfig() {
+            return new Promise((resolve) => {
+                database.ref('config/teams').once('value', (snapshot) => {
+                    const val = snapshot.val();
+                    if (val && Array.isArray(val) && val.length > 0) {
+                        teamConfig = val;
+                        buildTeamsFromConfig();
+                        renderTeamSummaryCards();
+                        document.getElementById('teamSetupOverlay').classList.add('hidden');
+                    } else {
+                        // No config: show setup with 6 default empty rows
+                        teamConfig = [];
+                        const defaults = ['Team 1', 'Team 2', 'Team 3', 'Team 4', 'Team 5', 'Team 6'];
+                        defaults.forEach((name, i) => teamConfig.push({ name, owner: '', icon: TEAM_ICONS_OPTIONS[i % TEAM_ICONS_OPTIONS.length] }));
+                        showTeamSetupForm();
+                    }
+                    resolve();
+                }, (err) => {
+                    console.warn('Could not load team config', err);
+                    teamConfig = [{ name: 'Team 1', owner: '', icon: '🐯' }, { name: 'Team 2', owner: '', icon: '🐆' }];
+                    showTeamSetupForm();
+                    resolve();
+                });
+            });
+        }
+
+        function showTeamSetupForm() {
+            const container = document.getElementById('teamSetupRows');
+            container.innerHTML = teamConfig.map((t, i) => `
+                <div class="team-setup-row" data-row-index="${i}">
+                    <div>
+                        <label>Team name</label>
+                        <input type="text" class="team-name-input" value="${(t.name || '').replace(/"/g, '&quot;')}" placeholder="e.g. HR Tigers">
+                    </div>
+                    <div>
+                        <label>Owner (optional)</label>
+                        <input type="text" class="team-owner-input" value="${(t.owner || '').replace(/"/g, '&quot;')}" placeholder="e.g. John">
+                    </div>
+                    <div style="display: flex; align-items: flex-end; gap: 8px;">
+                        <select class="team-icon-select">${TEAM_ICONS_OPTIONS.map(ic => `<option value="${ic}" ${t.icon === ic ? 'selected' : ''}>${ic}</option>`).join('')}</select>
+                        <button type="button" class="team-setup-remove" onclick="removeTeamSetupRow(${i})">Remove</button>
+                    </div>
+                </div>
+            `).join('');
+            document.getElementById('teamSetupOverlay').classList.remove('hidden');
+        }
+
+        function addTeamSetupRow() {
+            teamConfig.push({ name: 'New Team', owner: '', icon: TEAM_ICONS_OPTIONS[teamConfig.length % TEAM_ICONS_OPTIONS.length] });
+            showTeamSetupForm();
+        }
+
+        function removeTeamSetupRow(index) {
+            if (teamConfig.length <= 2) {
+                alert('You need at least 2 teams.');
+                return;
+            }
+            teamConfig.splice(index, 1);
+            showTeamSetupForm();
+        }
+
+        function saveTeamConfig() {
+            const rows = document.querySelectorAll('.team-setup-row');
+            const newConfig = [];
+            const names = new Set();
+            rows.forEach((row, i) => {
+                const nameInput = row.querySelector('.team-name-input');
+                const ownerInput = row.querySelector('.team-owner-input');
+                const iconSelect = row.querySelector('.team-icon-select');
+                const name = (nameInput && nameInput.value || '').trim();
+                if (!name) return;
+                if (names.has(name)) {
+                    alert('Duplicate team name: "' + name + '". Use unique names.');
+                    return;
+                }
+                names.add(name);
+                newConfig.push({
+                    name,
+                    owner: (ownerInput && ownerInput.value || '').trim(),
+                    icon: (iconSelect && iconSelect.value) || '🔴'
+                });
+            });
+            if (newConfig.length < 2) {
+                alert('Add at least 2 teams.');
+                return;
+            }
+            teamConfig = newConfig;
+            database.ref('config/teams').set(teamConfig).then(() => {
+                buildTeamsFromConfig();
+                renderTeamSummaryCards();
+                document.getElementById('teamSetupOverlay').classList.add('hidden');
+            }).catch(err => {
+                alert('Failed to save: ' + (err.message || err));
+            });
+        }
 
         // Load all players from Firebase
         function loadPlayers() {
@@ -1614,23 +1805,16 @@
                 console.log('🔄 Loading existing team data...');
                 
                 database.ref('players').once('value', (snapshot) => {
-                    // Reset teams first
-                    teams = {
-                        'HR Tigers': [],
-                        'CBG Panthers': [],
-                        'Krishna Warriors': [],
-                        'Victory Vipers': [],
-                        'Shiv Shambhu': [],
-                        'Subbu Strikers': []
-                    };
-                    teamPurses = {
-                        'HR Tigers': INITIAL_PURSE,
-                        'CBG Panthers': INITIAL_PURSE,
-                        'Krishna Warriors': INITIAL_PURSE,
-                        'Victory Vipers': INITIAL_PURSE,
-                        'Shiv Shambhu': INITIAL_PURSE,
-                        'Subbu Strikers': INITIAL_PURSE
-                    };
+                    // Reset teams from config (same names as saved)
+                    teams = {};
+                    teamPurses = {};
+                    (teamConfig || []).forEach(t => {
+                        const name = (t.name || '').trim();
+                        if (name) {
+                            teams[name] = [];
+                            teamPurses[name] = INITIAL_PURSE;
+                        }
+                    });
 
                     let soldCount = 0;
                     let skippedCount = 0;
@@ -2223,6 +2407,9 @@
                     }
                 }
             });
+
+            // Load team config on startup (or show setup to enter team names)
+            loadTeamConfig();
         });
 
         // Remove player from team
@@ -2394,32 +2581,22 @@
             progressBar.textContent = percentage + '%';
         }
 
-        // Update team counts and purses
+        // Update team counts and purses (dynamic from config)
         function updateTeamCounts() {
-            // Update counts and purses
-            const teamNames = ['HR Tigers', 'CBG Panthers', 'Krishna Warriors', 'Victory Vipers', 'Shiv Shambhu', 'Subbu Strikers'];
-            const teamIds = ['teamA', 'teamB', 'teamC', 'teamD', 'teamE', 'teamF'];
-            
-            teamNames.forEach((teamName, index) => {
-                const teamId = teamIds[index];
+            Object.keys(teams).forEach(teamName => {
                 const playerCount = teams[teamName] ? teams[teamName].length : 0;
                 const isComplete = playerCount >= MAX_PLAYERS_PER_TEAM;
-                
-                // Update count
-                document.getElementById(teamId + 'Count').textContent = playerCount + '/12';
-                
-                // Update purse
-                document.getElementById(teamId + 'Purse').textContent = '₹' + (teamPurses[teamName] || INITIAL_PURSE).toLocaleString('en-IN');
-                
-                // Add complete badge if team is full
-                const card = document.getElementById(teamId + 'Card');
+                const escaped = teamName.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+                const card = document.querySelector('.team-summary-card[data-team-name="' + escaped + '"]');
+                if (!card) return;
+                const countEl = card.querySelector('[data-team-count]');
+                const purseEl = card.querySelector('[data-team-purse]');
+                if (countEl) countEl.textContent = playerCount + '/' + MAX_PLAYERS_PER_TEAM;
+                if (purseEl) purseEl.textContent = '₹' + (teamPurses[teamName] || INITIAL_PURSE).toLocaleString('en-IN');
                 if (isComplete) {
                     card.classList.add('team-complete');
-                    // Add complete badge if not already present
-                    if (!card.querySelector('.complete-badge')) {
-                        const purseDiv = document.getElementById(teamId + 'Purse');
-                        purseDiv.insertAdjacentHTML('afterend', '<div class="complete-badge">✓ COMPLETE</div>');
-                    }
+                    if (!card.querySelector('.complete-badge') && purseEl)
+                        purseEl.insertAdjacentHTML('afterend', '<div class="complete-badge">✓ COMPLETE</div>');
                 } else {
                     card.classList.remove('team-complete');
                     const badge = card.querySelector('.complete-badge');
@@ -2507,23 +2684,16 @@
             unsoldPlayers = [];
             processedPlayerIds = new Set();
             
-                    // Reset teams and purses
-                    teams = {
-                        'HR Tigers': [],
-                        'CBG Panthers': [],
-                        'Krishna Warriors': [],
-                        'Victory Vipers': [],
-                        'Shiv Shambhu': [],
-                        'Subbu Strikers': []
-                    };
-                    teamPurses = {
-                        'HR Tigers': INITIAL_PURSE,
-                        'CBG Panthers': INITIAL_PURSE,
-                        'Krishna Warriors': INITIAL_PURSE,
-                        'Victory Vipers': INITIAL_PURSE,
-                        'Shiv Shambhu': INITIAL_PURSE,
-                        'Subbu Strikers': INITIAL_PURSE
-                    };
+                    // Reset teams and purses from config
+                    teams = {};
+                    teamPurses = {};
+                    (teamConfig || []).forEach(t => {
+                        const name = (t.name || '').trim();
+                        if (name) {
+                            teams[name] = [];
+                            teamPurses[name] = INITIAL_PURSE;
+                        }
+                    });
             
             // Clear current auction from Firebase
             await database.ref('currentAuction').remove();
