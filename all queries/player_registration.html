@@ -521,6 +521,7 @@
             <p>Load players from the registration sheet. Sheet must be <strong>Published to web</strong> (File → Share → Publish to web).</p>
             <a href="https://docs.google.com/spreadsheets/d/e/2PACX-1vQPypcKMm2ZcSJZDnTa4EHTa1nUEU2ogIIKjLFChlC4QW0MwbDXsLEGLXbw_0APk9RWiBlJIT7IldsX/pubhtml?gid=710296909&single=true" target="_blank" rel="noopener">Open sheet ↗</a>
             <button type="button" class="import-sheet-btn" id="importSheetBtn">Import players from sheet</button>
+            <button type="button" class="import-sheet-btn fix-images-btn" id="fixImagesBtn" style="background:#6c757d; margin-top:8px;">Fix existing images (copy Drive → Firebase)</button>
             <div id="importStatus"></div>
             <div id="importPreview" class="import-preview"></div>
         </div>
@@ -822,12 +823,30 @@
             return t ? (t.charAt(0).toUpperCase() + t.slice(1).toLowerCase()) : 'Batter';
         }
 
-        // Convert Google Drive share link to direct image URL for display
+        // Convert Google Drive share link to embeddable image URL (thumbnail format works for embedding)
         function driveUrlToDirect(url) {
             if (!url || !url.trim()) return null;
-            const m = url.match(/drive\.google\.com\/open\?id=([a-zA-Z0-9_-]+)/) || url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/) || url.match(/id=([a-zA-Z0-9_-]+)/);
-            if (m) return 'https://drive.google.com/uc?export=view&id=' + m[1];
+            const m = url.match(/drive\.google\.com\/open\?id=([a-zA-Z0-9_-]+)/) || url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/) || url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+            if (m) return 'https://drive.google.com/thumbnail?id=' + m[1] + '&sz=w800';
             return url.trim();
+        }
+
+        // Fetch image from URL (via CORS proxy) and upload to Firebase Storage so it always loads
+        async function fetchImageAndUploadToStorage(imageUrl, playerId) {
+            if (!imageUrl || !imageUrl.startsWith('http')) return null;
+            try {
+                const proxyUrl = CORS_PROXY + encodeURIComponent(imageUrl);
+                const res = await fetch(proxyUrl);
+                if (!res.ok) return null;
+                const blob = await res.blob();
+                if (!blob.type.startsWith('image/')) return null;
+                const storageRef = storage.ref('player-images/imported/' + playerId + '.jpg');
+                await storageRef.put(blob);
+                return await storageRef.getDownloadURL();
+            } catch (e) {
+                console.warn('Could not fetch/upload image for', playerId, e);
+                return null;
+            }
         }
 
         importSheetBtn.addEventListener('click', async function() {
@@ -867,22 +886,28 @@
                 importPreview.innerHTML = '<strong>Found ' + players.length + ' players:</strong><br>' +
                     players.slice(0, 15).map(p => p.name + ' (' + p.type + ')').join('<br>') +
                     (players.length > 15 ? '<br>...' : '');
-                importStatus.textContent = 'Adding ' + players.length + ' players to Firebase...';
+                importStatus.textContent = 'Adding players and copying images to Firebase...';
                 let added = 0;
                 for (const p of players) {
                     const playerId = database.ref().child('players').push().key;
+                    let imageToSave = p.image || null;
+                    if (p.image) {
+                        importStatus.textContent = 'Adding ' + (added + 1) + '/' + players.length + ' (fetching image for ' + p.name + ')...';
+                        const uploadedUrl = await fetchImageAndUploadToStorage(p.image, playerId);
+                        if (uploadedUrl) imageToSave = uploadedUrl;
+                    }
                     await database.ref('players/' + playerId).set({
                         id: playerId,
                         name: p.name,
                         type: p.type || 'Batter',
                         mobile: p.mobile || '',
-                        image: p.image || null,
+                        image: imageToSave,
                         basePrice: 50000,
                         timestamp: new Date().toISOString()
                     });
                     added++;
                 }
-                importStatus.textContent = 'Added ' + added + ' players. Names, Category, Mobile and image links from the sheet are imported.';
+                importStatus.textContent = 'Added ' + added + ' players. Images copied to Firebase where possible.';
                 importPreview.innerHTML += '<br><br>✅ Import complete.';
             } catch (err) {
                 console.error(err);
@@ -890,6 +915,46 @@
                 importPreview.innerHTML = '';
             }
             importSheetBtn.disabled = false;
+        });
+
+        // Fix existing images: copy Drive URLs to Firebase Storage so they load
+        document.getElementById('fixImagesBtn').addEventListener('click', async function() {
+            const btn = this;
+            const status = document.getElementById('importStatus');
+            const preview = document.getElementById('importPreview');
+            btn.disabled = true;
+            status.textContent = 'Loading players...';
+            preview.innerHTML = '';
+            try {
+                const snapshot = await database.ref('players').once('value');
+                const players = [];
+                snapshot.forEach(c => { const p = c.val(); if (p && p.id) players.push(p); });
+                const withDrive = players.filter(p => p.image && (p.image.includes('drive.google.com') || p.image.includes('thumbnail')));
+                if (withDrive.length === 0) {
+                    status.textContent = 'No players with Drive image links found.';
+                    btn.disabled = false;
+                    return;
+                }
+                status.textContent = 'Copying ' + withDrive.length + ' images to Firebase...';
+                let done = 0;
+                for (const p of withDrive) {
+                    status.textContent = 'Fixing image ' + (done + 1) + '/' + withDrive.length + ': ' + p.name + '...';
+                    const thumbUrl = p.image.includes('thumbnail') ? p.image : driveUrlToDirect(p.image);
+                    if (thumbUrl) {
+                        const uploadedUrl = await fetchImageAndUploadToStorage(thumbUrl, p.id);
+                        if (uploadedUrl) {
+                            await database.ref('players/' + p.id).update({ image: uploadedUrl });
+                            done++;
+                        }
+                    }
+                }
+                status.textContent = 'Done. Updated ' + done + ' player images. Refresh the gallery.';
+                preview.innerHTML = '✅ Images are now served from Firebase and should display.';
+            } catch (err) {
+                console.error(err);
+                status.textContent = 'Error: ' + (err.message || err);
+            }
+            btn.disabled = false;
         });
     </script>
 </body>

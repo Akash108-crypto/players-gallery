@@ -836,6 +836,14 @@
             }
         }
 
+        // Use embeddable URL for Google Drive images (thumbnail format works when embedding)
+        function getImageSrc(url) {
+            if (!url) return '';
+            const m = url.match(/drive\.google\.com\/open\?id=([a-zA-Z0-9_-]+)/) || url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/) || url.match(/uc\?export=view&id=([a-zA-Z0-9_-]+)/) || url.match(/thumbnail\?id=([a-zA-Z0-9_-]+)/) || url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+            if (m) return 'https://drive.google.com/thumbnail?id=' + m[1] + '&sz=w800';
+            return url;
+        }
+
         // Format timestamp
         function formatTimestamp(timestamp) {
             const date = new Date(timestamp);
@@ -894,7 +902,7 @@
                 return `
                     <div class="player-card">
                         ${player.image 
-                            ? `<img class="player-image" src="${player.image}" alt="${player.name}">`
+                            ? `<img class="player-image" src="${getImageSrc(player.image)}" alt="${(player.name || '').replace(/"/g, '&quot;')}" referrerpolicy="no-referrer" onerror="this.onerror=null;this.outerHTML='<div class=\\'player-image-placeholder\\'>👤</div>'">`
                             : `<div class="player-image-placeholder">👤</div>`
                         }
                         <div class="player-name">${player.name || 'Unknown Player'}</div>
