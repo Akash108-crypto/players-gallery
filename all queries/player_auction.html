@@ -1409,7 +1409,7 @@
         <div class="team-setup-overlay" id="teamSetupOverlay">
             <div class="team-setup-popup">
                 <h2>🏏 Set up teams</h2>
-                <p>Enter team names (and optional owner names). These will be used for the auction. You can change them later by clearing teams and re-opening this page after refreshing.</p>
+                <p>Set the <strong>number of teams</strong> and <strong>team names</strong> (and optional owners). Use &quot;+ Add team&quot; / &quot;Remove&quot; to change how many teams. You can open this again anytime with <strong>Edit teams</strong>.</p>
                 <div id="teamSetupRows"></div>
                 <div class="team-setup-actions">
                     <button type="button" class="team-setup-add" onclick="addTeamSetupRow()">+ Add team</button>
@@ -1454,6 +1454,10 @@
                 <button class="btn btn-primary btn-large" id="startAuctionBtn">
                     <span>🔒</span>
                     <span>Start Auction (Admin Only)</span>
+                </button>
+                <button class="btn btn-secondary" id="editTeamsBtn" type="button" onclick="openTeamSetupForEdit()" title="Change number of teams and team names">
+                    <span>✏️</span>
+                    <span>Edit teams</span>
                 </button>
                 <button class="btn btn-danger" id="clearTeamsBtn">
                     <span>🔒</span>
@@ -1763,6 +1767,16 @@
             }).catch(err => {
                 alert('Failed to save: ' + (err.message || err));
             });
+        }
+
+        function openTeamSetupForEdit() {
+            if (!teamConfig || teamConfig.length === 0) {
+                teamConfig = [
+                    { name: 'Team 1', owner: '', icon: '🐯' },
+                    { name: 'Team 2', owner: '', icon: '🐆' }
+                ];
+            }
+            showTeamSetupForm();
         }
 
         // Load all players from Firebase
