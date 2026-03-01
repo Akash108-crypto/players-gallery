@@ -1504,7 +1504,7 @@
             <div class="team-stats">
                 <div class="stat-box">
                     <div class="label">Total Players</div>
-                    <div class="value" id="teamDetailsCount">0/11</div>
+                    <div class="value" id="teamDetailsCount">0/10</div>
                 </div>
                 <div class="stat-box">
                     <div class="label">Total Spent</div>
@@ -1616,7 +1616,7 @@
         let processedPlayerIds = new Set();
         let isAuctionActive = false;
         const INITIAL_PURSE = 10000000; // 1 crore per team
-        const MAX_PLAYERS_PER_TEAM = 12; // Each team must buy 12 players
+        const MAX_PLAYERS_PER_TEAM = 10; // Each team must buy 10 players
         const TEAM_ICONS_OPTIONS = ['🐯', '🐆', '⚔️', '🐍', '🔱', '⚡', '🦁', '🐻', '🦅', '🏹'];
         let teamConfig = []; // Loaded from Firebase config/teams: [{ name, owner, icon }, ...]
         let teams = {};
@@ -1666,7 +1666,7 @@
                     <div class="team-icon-large">${teamIcons[teamName] || '🔴'}</div>
                     <div class="team-name-large">${teamName}</div>
                     ${teamOwners[teamName] ? `<div style="font-size: 11px; color: #666; margin-top: 2px;">${teamOwners[teamName]}</div>` : ''}
-                    <div class="team-players-count" data-team-count>0/12</div>
+                    <div class="team-players-count" data-team-count>0/10</div>
                     <div class="team-label">Players</div>
                     <div class="team-purse-remaining" data-team-purse>₹${INITIAL_PURSE.toLocaleString('en-IN')}</div>
                 </div>
@@ -2068,7 +2068,7 @@
                 
                 let statusMessage = '';
                 if (teamFull) {
-                    statusMessage = `<div class="team-full">✓ Team Complete (12/12)</div>`;
+                    statusMessage = `<div class="team-full">✓ Team Complete (10/10)</div>`;
                 } else if (!canAfford) {
                     statusMessage = `<div class="team-purse insufficient-funds">❌ ₹${remainingPurse.toLocaleString('en-IN')}</div>`;
                 } else {
@@ -2082,7 +2082,7 @@
                         <div class="team-icon">${teamIcons[teamName]}</div>
                         <div class="team-name">${teamName}</div>
                         ${ownerName ? `<div style="font-size: 12px; color: #666; margin-top: 2px;">Owner: ${ownerName}</div>` : ''}
-                        <div class="team-count">${teamPlayers}/12 players</div>
+                        <div class="team-count">${teamPlayers}/10 players</div>
                         ${statusMessage}
                     </button>
                 `;
@@ -2170,7 +2170,7 @@
                 
                 let statusMessage = '';
                 if (teamFull) {
-                    statusMessage = `<div class="team-full">✓ Team Complete (12/12)</div>`;
+                    statusMessage = `<div class="team-full">✓ Team Complete (10/10)</div>`;
                 } else if (!canAfford) {
                     statusMessage = `<div class="team-purse insufficient-funds">❌ ₹${remainingPurse.toLocaleString('en-IN')}</div>`;
                 } else {
@@ -2184,7 +2184,7 @@
                         <div class="team-icon">${teamIcons[teamName]}</div>
                         <div class="team-name">${teamName}</div>
                         ${ownerName ? `<div style="font-size: 12px; color: #666; margin-top: 2px;">Owner: ${ownerName}</div>` : ''}
-                        <div class="team-count">${teamPlayers}/12 players</div>
+                        <div class="team-count">${teamPlayers}/10 players</div>
                         ${statusMessage}
                     </button>
                 `;
@@ -2243,7 +2243,7 @@
             document.getElementById('teamDetailsName').textContent = teamName;
             
             // Update stats
-            document.getElementById('teamDetailsCount').textContent = `${teamPlayers.length}/11`;
+            document.getElementById('teamDetailsCount').textContent = `${teamPlayers.length}/${MAX_PLAYERS_PER_TEAM}`;
             document.getElementById('teamDetailsSpent').textContent = '₹' + teamValue.toLocaleString('en-IN');
             document.getElementById('teamDetailsRemaining').textContent = '₹' + remainingPurse.toLocaleString('en-IN');
             

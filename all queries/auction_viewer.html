@@ -437,6 +437,7 @@
         let teamIcons = {};
         let teamOwners = {};
         const INITIAL_PURSE = 10000000; // 1 crore per team
+        const MAX_PLAYERS_PER_TEAM = 10;
         let teamsData = {};
         let currentViewingTeam = null;
 
@@ -515,7 +516,7 @@
                 const players = teamsData[teamName];
                 const playerCount = players.length;
                 const totalSpent = players.reduce((sum, p) => sum + (p.sellingPrice || 50000), 0);
-                const isComplete = playerCount >= 12;
+                const isComplete = playerCount >= MAX_PLAYERS_PER_TEAM;
                 const ownerName = teamOwners[teamName];
                 
                 return `
@@ -523,7 +524,7 @@
                         <div class="team-icon">${teamIcons[teamName]}</div>
                         <div class="team-name">${teamName}</div>
                         ${ownerName ? `<div style="font-size: 12px; color: rgba(255,255,255,0.7); margin-top: 2px;">${ownerName}</div>` : ''}
-                        <div class="team-count">${playerCount}/12</div>
+                        <div class="team-count">${playerCount}/${MAX_PLAYERS_PER_TEAM}</div>
                         <div style="font-size: 14px; opacity: 0.9;">Players</div>
                         <div class="team-spent">
                             Spent: ₹${totalSpent.toLocaleString('en-IN')}
@@ -546,7 +547,7 @@
             document.getElementById('modalTeamName').textContent = teamName;
 
             // Update stats
-            document.getElementById('modalPlayerCount').textContent = `${players.length}/12`;
+            document.getElementById('modalPlayerCount').textContent = `${players.length}/${MAX_PLAYERS_PER_TEAM}`;
             document.getElementById('modalTotalSpent').textContent = '₹' + totalSpent.toLocaleString('en-IN');
             document.getElementById('modalPurseRemaining').textContent = '₹' + purseRemaining.toLocaleString('en-IN');
 
