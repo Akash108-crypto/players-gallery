@@ -527,6 +527,10 @@
             <p style="margin-top:16px; font-size:14px; color:#555;"><strong>Office / VPN users:</strong> Some networks block proxy services. If import fails, use <strong>File → Download → Comma-separated values (.csv)</strong> in Google Sheets, copy all text into the box below, then <strong>Import pasted CSV</strong> — this always works.</p>
             <textarea id="pasteCsvArea" placeholder="Paste CSV text here (Timestamp,Name,Mobile,...)" style="width:100%; min-height:100px; padding:10px; border:2px solid #e0e0e0; border-radius:8px; font-size:13px; margin-top:8px;"></textarea>
             <button type="button" class="import-sheet-btn" id="importPastedCsvBtn" style="background:#17a2b8; margin-top:8px;">Import pasted CSV</button>
+            <label style="display:block;margin-top:14px;font-size:14px;color:#333;cursor:pointer;">
+                <input type="checkbox" id="importSkipStorage" checked>
+                <strong>Save photos as Google Drive links only</strong> (recommended — skips Firebase Storage; avoids upload errors. Uncheck only if Storage is enabled in Firebase.)
+            </label>
             <div id="importStatus"></div>
             <div id="importPreview" class="import-preview"></div>
         </div>
@@ -812,6 +816,7 @@
                 const vals = splitRow(lines[i]);
                 const obj = {};
                 headers.forEach((h, j) => { obj[h] = (vals[j] || '').trim(); });
+                if (!Object.values(obj).some(v => String(v || '').trim())) continue;
                 rows.push(obj);
             }
             return { headers, rows };
@@ -897,7 +902,7 @@
             const { rows } = parseCSV(text.replace(/^\uFEFF/, ''));
             if (rows.length === 0) throw new Error('No data rows found.');
             const players = rows.map(r => {
-                const name = findCol(r, 'name', 'player', 'full name');
+                const name = (findCol(r, 'name', 'player', 'full name') || '').trim();
                 if (!name) return null;
                 const type = normalizeType(findCol(r, 'category', 'type', 'player type', 'role'));
                 const mobile = findCol(r, 'mobile', 'phone', 'contact', 'number');
@@ -908,12 +913,13 @@
             importPreview.innerHTML = '<strong>Found ' + players.length + ' players:</strong><br>' +
                 players.slice(0, 15).map(p => p.name + ' (' + p.type + ')').join('<br>') +
                 (players.length > 15 ? '<br>...' : '');
-            importStatus.textContent = 'Adding players and copying images to Firebase...';
+            const skipStorage = document.getElementById('importSkipStorage') && document.getElementById('importSkipStorage').checked;
+            importStatus.textContent = skipStorage ? 'Adding players (Drive image links only)...' : 'Adding players and copying images to Firebase...';
             let added = 0;
             for (const p of players) {
                 const playerId = database.ref().child('players').push().key;
                 let imageToSave = p.image || null;
-                if (p.image) {
+                if (p.image && !skipStorage) {
                     importStatus.textContent = 'Adding ' + (added + 1) + '/' + players.length + ' (fetching image for ' + p.name + ')...';
                     const uploadedUrl = await fetchImageAndUploadToStorage(p.image, playerId);
                     if (uploadedUrl) imageToSave = uploadedUrl;
