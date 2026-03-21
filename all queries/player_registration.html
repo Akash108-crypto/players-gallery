@@ -518,10 +518,15 @@
 
         <div class="import-section">
             <h3>📥 Import from Google Sheet</h3>
-            <p>Load players from the registration sheet. Sheet must be <strong>Published to web</strong> (File → Share → Publish to web).</p>
-            <a href="https://docs.google.com/spreadsheets/d/1ZcPcxB1cT1teCFT3UR_MaZSk2mOA6rnBy8AjDKFvDAw/edit?gid=43192661#gid=43192661" target="_blank" rel="noopener">Open sheet ↗</a>
+            <p><strong>Source:</strong> <a href="https://docs.google.com/spreadsheets/d/1ZcPcxB1cT1teCFT3UR_MaZSk2mOA6rnBy8AjDKFvDAw/edit?usp=sharing" target="_blank" rel="noopener">Auct(Responses)</a> — tab <strong>Form Responses 1</strong> (columns: Timestamp, Name, Mobile, Category, image).</p>
+            <p>Optional: if automatic import fails, after <strong>File → Share → Publish to web</strong> (CSV), paste the published link here — it is tried first:</p>
+            <input type="url" id="publishedCsvUrl" placeholder="https://docs.google.com/spreadsheets/d/e/.../pub?output=csv&gid=43192661" style="width:100%; padding:10px; border:2px solid #e0e0e0; border-radius:8px; font-size:13px; margin-bottom:10px;">
+            <a href="https://docs.google.com/spreadsheets/d/1ZcPcxB1cT1teCFT3UR_MaZSk2mOA6rnBy8AjDKFvDAw/edit?usp=sharing" target="_blank" rel="noopener">Open Auct(Responses) sheet ↗</a>
             <button type="button" class="import-sheet-btn" id="importSheetBtn">Import players from sheet</button>
             <button type="button" class="import-sheet-btn fix-images-btn" id="fixImagesBtn" style="background:#6c757d; margin-top:8px;">Fix existing images (copy Drive → Firebase)</button>
+            <p style="margin-top:16px; font-size:14px; color:#555;"><strong>If the button above fails:</strong> In Google Sheets open your sheet → <strong>File → Download → Comma-separated values (.csv)</strong>, open the file in Notepad, copy all text, paste below, then click <strong>Import pasted CSV</strong>.</p>
+            <textarea id="pasteCsvArea" placeholder="Paste CSV text here (Timestamp,Name,Mobile,...)" style="width:100%; min-height:100px; padding:10px; border:2px solid #e0e0e0; border-radius:8px; font-size:13px; margin-top:8px;"></textarea>
+            <button type="button" class="import-sheet-btn" id="importPastedCsvBtn" style="background:#17a2b8; margin-top:8px;">Import pasted CSV</button>
             <div id="importStatus"></div>
             <div id="importPreview" class="import-preview"></div>
         </div>
@@ -764,12 +769,18 @@
         // Auto-focus on name input
         playerNameInput.focus();
 
-        // --- Import from Google Sheet (published sheet: Form Responses 1, gid=710296909) ---
         // Auct(Responses) — Form Responses 1: Timestamp, Name, Mobile, Category, image
+        const SHEET_ID = '1ZcPcxB1cT1teCFT3UR_MaZSk2mOA6rnBy8AjDKFvDAw';
+        const SHEET_GID = '43192661';
         const SHEET_CSV_URLS = [
-            'https://docs.google.com/spreadsheets/d/1ZcPcxB1cT1teCFT3UR_MaZSk2mOA6rnBy8AjDKFvDAw/export?format=csv&gid=43192661'
+            'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/export?format=csv&gid=' + SHEET_GID
         ];
-        const CORS_PROXY = 'https://api.allorigins.win/raw?url=';
+        function corsProxies(url) {
+            return [
+                'https://api.allorigins.win/raw?url=' + encodeURIComponent(url),
+                'https://corsproxy.io/?' + encodeURIComponent(url)
+            ];
+        }
         const importSheetBtn = document.getElementById('importSheetBtn');
         const importStatus = document.getElementById('importStatus');
         const importPreview = document.getElementById('importPreview');
@@ -831,90 +842,133 @@
             return url.trim();
         }
 
+        function looksLikeCsv(text) {
+            if (!text || text.length < 20) return false;
+            const t = text.trim();
+            if (t.startsWith('<') || t.includes('<!DOCTYPE') || t.includes('<html')) return false;
+            const lines = t.split(/\r?\n/).filter(l => l.trim());
+            if (lines.length < 2) return false;
+            return lines[0].includes(',');
+        }
+
+        async function fetchSheetCsvText() {
+            const custom = document.getElementById('publishedCsvUrl') && document.getElementById('publishedCsvUrl').value.trim();
+            const urlList = custom ? [custom, ...SHEET_CSV_URLS] : SHEET_CSV_URLS;
+            let lastError = '';
+            for (const sheetUrl of urlList) {
+                for (const proxyUrl of corsProxies(sheetUrl)) {
+                    try {
+                        const res = await fetch(proxyUrl, { method: 'GET' });
+                        const text = await res.text();
+                        if (!res.ok) { lastError = 'HTTP ' + res.status; continue; }
+                        if (!looksLikeCsv(text)) {
+                            lastError = 'Google returned a login page, not CSV. Publish the sheet (see instructions below).';
+                            continue;
+                        }
+                        return text.replace(/^\uFEFF/, '');
+                    } catch (e) {
+                        lastError = (e && e.message) || String(e);
+                    }
+                }
+            }
+            throw new Error(lastError || 'Could not fetch sheet. Publish to web and try again.');
+        }
+
         // Fetch image from URL (via CORS proxy) and upload to Firebase Storage so it always loads
         async function fetchImageAndUploadToStorage(imageUrl, playerId) {
             if (!imageUrl || !imageUrl.startsWith('http')) return null;
-            try {
-                const proxyUrl = CORS_PROXY + encodeURIComponent(imageUrl);
-                const res = await fetch(proxyUrl);
-                if (!res.ok) return null;
-                const blob = await res.blob();
-                if (!blob.type.startsWith('image/')) return null;
-                const storageRef = storage.ref('player-images/imported/' + playerId + '.jpg');
-                await storageRef.put(blob);
-                return await storageRef.getDownloadURL();
-            } catch (e) {
-                console.warn('Could not fetch/upload image for', playerId, e);
-                return null;
+            for (const proxyUrl of corsProxies(imageUrl)) {
+                try {
+                    const res = await fetch(proxyUrl);
+                    if (!res.ok) continue;
+                    const blob = await res.blob();
+                    if (!blob.type.startsWith('image/')) continue;
+                    const storageRef = storage.ref('player-images/imported/' + playerId + '.jpg');
+                    await storageRef.put(blob);
+                    return await storageRef.getDownloadURL();
+                } catch (e) {
+                    console.warn('Image fetch attempt failed', playerId, e);
+                }
             }
+            return null;
+        }
+
+        async function importPlayersFromCsvText(text) {
+            const { rows } = parseCSV(text.replace(/^\uFEFF/, ''));
+            if (rows.length === 0) throw new Error('No data rows found.');
+            const players = rows.map(r => {
+                const name = findCol(r, 'name', 'player', 'full name');
+                if (!name) return null;
+                const type = normalizeType(findCol(r, 'category', 'type', 'player type', 'role'));
+                const mobile = findCol(r, 'mobile', 'phone', 'contact', 'number');
+                const imageUrl = driveUrlToDirect(findCol(r, 'image', 'photo', 'picture', 'img'));
+                return { name, type, mobile, image: imageUrl };
+            }).filter(Boolean);
+            if (players.length === 0) throw new Error('No rows with a Name column. First row must be headers: Name, Mobile, Category, image.');
+            importPreview.innerHTML = '<strong>Found ' + players.length + ' players:</strong><br>' +
+                players.slice(0, 15).map(p => p.name + ' (' + p.type + ')').join('<br>') +
+                (players.length > 15 ? '<br>...' : '');
+            importStatus.textContent = 'Adding players and copying images to Firebase...';
+            let added = 0;
+            for (const p of players) {
+                const playerId = database.ref().child('players').push().key;
+                let imageToSave = p.image || null;
+                if (p.image) {
+                    importStatus.textContent = 'Adding ' + (added + 1) + '/' + players.length + ' (fetching image for ' + p.name + ')...';
+                    const uploadedUrl = await fetchImageAndUploadToStorage(p.image, playerId);
+                    if (uploadedUrl) imageToSave = uploadedUrl;
+                }
+                await database.ref('players/' + playerId).set({
+                    id: playerId,
+                    name: p.name,
+                    type: p.type || 'Batter',
+                    mobile: p.mobile || '',
+                    image: imageToSave,
+                    basePrice: 50000,
+                    timestamp: new Date().toISOString()
+                });
+                added++;
+            }
+            importStatus.textContent = 'Added ' + added + ' players. Images copied to Firebase where possible.';
+            importPreview.innerHTML += '<br><br>✅ Import complete.';
         }
 
         importSheetBtn.addEventListener('click', async function() {
             importSheetBtn.disabled = true;
+            document.getElementById('importPastedCsvBtn').disabled = true;
             importStatus.textContent = 'Loading sheet...';
             importPreview.innerHTML = '';
             try {
-                let res = null;
-                let lastErr = null;
-                for (const sheetUrl of SHEET_CSV_URLS) {
-                    try {
-                        res = await fetch(CORS_PROXY + encodeURIComponent(sheetUrl));
-                        if (res.ok) break;
-                    } catch (e) { lastErr = e; }
-                }
-                if (!res || !res.ok) throw lastErr || new Error('Could not load sheet. Ensure the sheet is published to web (File → Share → Publish to web).');
-                const text = await res.text();
-                const { headers, rows } = parseCSV(text);
-                if (rows.length === 0) {
-                    importStatus.textContent = 'No data rows found in the sheet.';
-                    importSheetBtn.disabled = false;
-                    return;
-                }
-                const players = rows.map(r => {
-                    const name = findCol(r, 'name', 'player', 'full name');
-                    if (!name) return null;
-                    const type = normalizeType(findCol(r, 'category', 'type', 'player type', 'role'));
-                    const mobile = findCol(r, 'mobile', 'phone', 'contact', 'number');
-                    const imageUrl = driveUrlToDirect(findCol(r, 'image', 'photo', 'picture', 'img'));
-                    return { name, type, mobile, image: imageUrl };
-                }).filter(Boolean);
-                if (players.length === 0) {
-                    importStatus.textContent = 'No rows with a name column found. Use headers like Name, Type, Mobile.';
-                    importSheetBtn.disabled = false;
-                    return;
-                }
-                importPreview.innerHTML = '<strong>Found ' + players.length + ' players:</strong><br>' +
-                    players.slice(0, 15).map(p => p.name + ' (' + p.type + ')').join('<br>') +
-                    (players.length > 15 ? '<br>...' : '');
-                importStatus.textContent = 'Adding players and copying images to Firebase...';
-                let added = 0;
-                for (const p of players) {
-                    const playerId = database.ref().child('players').push().key;
-                    let imageToSave = p.image || null;
-                    if (p.image) {
-                        importStatus.textContent = 'Adding ' + (added + 1) + '/' + players.length + ' (fetching image for ' + p.name + ')...';
-                        const uploadedUrl = await fetchImageAndUploadToStorage(p.image, playerId);
-                        if (uploadedUrl) imageToSave = uploadedUrl;
-                    }
-                    await database.ref('players/' + playerId).set({
-                        id: playerId,
-                        name: p.name,
-                        type: p.type || 'Batter',
-                        mobile: p.mobile || '',
-                        image: imageToSave,
-                        basePrice: 50000,
-                        timestamp: new Date().toISOString()
-                    });
-                    added++;
-                }
-                importStatus.textContent = 'Added ' + added + ' players. Images copied to Firebase where possible.';
-                importPreview.innerHTML += '<br><br>✅ Import complete.';
+                const text = await fetchSheetCsvText();
+                await importPlayersFromCsvText(text);
+            } catch (err) {
+                console.error(err);
+                importStatus.textContent = 'Error: ' + (err.message || err) + ' — Try: File → Share → Publish to web (CSV), or use “Import pasted CSV” below.';
+                importPreview.innerHTML = '<p style="color:#856404;">1) Open your sheet → <strong>File → Share → Publish to web</strong> → Sheet “Form Responses 1” → <strong>CSV</strong> → Publish.<br>2) Or <strong>File → Download → CSV</strong>, copy all text into the box below → <strong>Import pasted CSV</strong>.</p>';
+            }
+            importSheetBtn.disabled = false;
+            document.getElementById('importPastedCsvBtn').disabled = false;
+        });
+
+        document.getElementById('importPastedCsvBtn').addEventListener('click', async function() {
+            const raw = document.getElementById('pasteCsvArea').value || '';
+            if (!raw.trim()) {
+                importStatus.textContent = 'Paste CSV text first (from File → Download → Comma-separated values).';
+                return;
+            }
+            importSheetBtn.disabled = true;
+            this.disabled = true;
+            importStatus.textContent = 'Importing from pasted CSV...';
+            importPreview.innerHTML = '';
+            try {
+                await importPlayersFromCsvText(raw);
             } catch (err) {
                 console.error(err);
                 importStatus.textContent = 'Error: ' + (err.message || err);
                 importPreview.innerHTML = '';
             }
             importSheetBtn.disabled = false;
+            this.disabled = false;
         });
 
         // Fix existing images: copy Drive URLs to Firebase Storage so they load
