@@ -519,7 +519,7 @@
         <div class="import-section">
             <h3>📥 Import from Google Sheet</h3>
             <p>Load players from the registration sheet. Sheet must be <strong>Published to web</strong> (File → Share → Publish to web).</p>
-            <a href="https://docs.google.com/spreadsheets/d/e/2PACX-1vQPypcKMm2ZcSJZDnTa4EHTa1nUEU2ogIIKjLFChlC4QW0MwbDXsLEGLXbw_0APk9RWiBlJIT7IldsX/pubhtml?gid=710296909&single=true" target="_blank" rel="noopener">Open sheet ↗</a>
+            <a href="https://docs.google.com/spreadsheets/d/1ZcPcxB1cT1teCFT3UR_MaZSk2mOA6rnBy8AjDKFvDAw/edit?gid=43192661#gid=43192661" target="_blank" rel="noopener">Open sheet ↗</a>
             <button type="button" class="import-sheet-btn" id="importSheetBtn">Import players from sheet</button>
             <button type="button" class="import-sheet-btn fix-images-btn" id="fixImagesBtn" style="background:#6c757d; margin-top:8px;">Fix existing images (copy Drive → Firebase)</button>
             <div id="importStatus"></div>
@@ -765,9 +765,9 @@
         playerNameInput.focus();
 
         // --- Import from Google Sheet (published sheet: Form Responses 1, gid=710296909) ---
+        // Auct(Responses) — Form Responses 1: Timestamp, Name, Mobile, Category, image
         const SHEET_CSV_URLS = [
-            'https://docs.google.com/spreadsheets/d/e/2PACX-1vQPypcKMm2ZcSJZDnTa4EHTa1nUEU2ogIIKjLFChlC4QW0MwbDXsLEGLXbw_0APk9RWiBlJIT7IldsX/pub?output=csv&gid=710296909',
-            'https://docs.google.com/spreadsheets/d/1X2SkK-ZPBw0wxLaP-lfUaeZpWFn7sWrRzkFEn2RxhVM/export?format=csv&gid=710296909'
+            'https://docs.google.com/spreadsheets/d/1ZcPcxB1cT1teCFT3UR_MaZSk2mOA6rnBy8AjDKFvDAw/export?format=csv&gid=43192661'
         ];
         const CORS_PROXY = 'https://api.allorigins.win/raw?url=';
         const importSheetBtn = document.getElementById('importSheetBtn');
