@@ -524,7 +524,7 @@
             <a href="https://docs.google.com/spreadsheets/d/1ZcPcxB1cT1teCFT3UR_MaZSk2mOA6rnBy8AjDKFvDAw/edit?usp=sharing" target="_blank" rel="noopener">Open Auct(Responses) sheet ↗</a>
             <button type="button" class="import-sheet-btn" id="importSheetBtn">Import players from sheet</button>
             <button type="button" class="import-sheet-btn fix-images-btn" id="fixImagesBtn" style="background:#6c757d; margin-top:8px;">Fix existing images (copy Drive → Firebase)</button>
-            <p style="margin-top:16px; font-size:14px; color:#555;"><strong>If the button above fails:</strong> In Google Sheets open your sheet → <strong>File → Download → Comma-separated values (.csv)</strong>, open the file in Notepad, copy all text, paste below, then click <strong>Import pasted CSV</strong>.</p>
+            <p style="margin-top:16px; font-size:14px; color:#555;"><strong>Office / VPN users:</strong> Some networks block proxy services. If import fails, use <strong>File → Download → Comma-separated values (.csv)</strong> in Google Sheets, copy all text into the box below, then <strong>Import pasted CSV</strong> — this always works.</p>
             <textarea id="pasteCsvArea" placeholder="Paste CSV text here (Timestamp,Name,Mobile,...)" style="width:100%; min-height:100px; padding:10px; border:2px solid #e0e0e0; border-radius:8px; font-size:13px; margin-top:8px;"></textarea>
             <button type="button" class="import-sheet-btn" id="importPastedCsvBtn" style="background:#17a2b8; margin-top:8px;">Import pasted CSV</button>
             <div id="importStatus"></div>
@@ -775,10 +775,10 @@
         const SHEET_CSV_URLS = [
             'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/export?format=csv&gid=' + SHEET_GID
         ];
+        // Only allorigins — corsproxy.io is often blocked by corporate firewalls (Anonymizer category)
         function corsProxies(url) {
             return [
-                'https://api.allorigins.win/raw?url=' + encodeURIComponent(url),
-                'https://corsproxy.io/?' + encodeURIComponent(url)
+                'https://api.allorigins.win/raw?url=' + encodeURIComponent(url)
             ];
         }
         const importSheetBtn = document.getElementById('importSheetBtn');
