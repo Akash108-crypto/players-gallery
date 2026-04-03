@@ -450,6 +450,27 @@
         let teamsData = {};
         let currentViewingTeam = null;
 
+        function starsForViewerPlayer(p) {
+            const r = Number(p && p.rating);
+            if (r === 5) return '★★★★★';
+            if (r === 4) return '★★★★';
+            if (r === 3) return '★★★';
+            const ic = { 'Type A': '★★★★★', 'Type B': '★★★★', 'Type C': '★★★', 'Batter': '🏏', 'Bowler': '⚡', 'All-Rounder': '⭐' };
+            return ic[p && p.type] || '⚽';
+        }
+        function roleLabelViewer(p) {
+            const t = (p && p.type) || '';
+            if (['Type A', 'Type B', 'Type C'].includes(t)) return t;
+            return t || 'Player';
+        }
+        function tierSlugViewer(p) {
+            const r = Number(p && p.rating);
+            if (r === 5) return 'type-a';
+            if (r === 4) return 'type-b';
+            if (r === 3) return 'type-c';
+            return (p.type || 'batter').toLowerCase().replace(/\s+/g, '-');
+        }
+
         // Load team config from Firebase (same as player_auction) then load players
         function loadTeamConfigThenPlayers() {
             database.ref('config/teams').once('value', (snapshot) => {
@@ -572,21 +593,12 @@
                     </div>
                 `;
             } else {
-                const typeIcons = {
-                    'Type A': '★★★★★',
-                    'Type B': '★★★★',
-                    'Type C': '★★★',
-                    'Batter': '🏏',
-                    'Bowler': '⚡',
-                    'All-Rounder': '⭐'
-                };
-
                 modalPlayersContent.innerHTML = `
                     <table class="players-table">
                         <thead>
                             <tr>
                                 <th>Player</th>
-                                <th>Category</th>
+                                <th>Rating / role</th>
                                 <th>Amount</th>
                             </tr>
                         </thead>
@@ -594,7 +606,7 @@
                             ${players.map((player, index) => `
                                 <tr>
                                     <td><strong>${index + 1}. ${player.name}</strong></td>
-                                    <td>${typeIcons[player.type] || '⚽'} ${player.type}</td>
+                                    <td>${starsForViewerPlayer(player)} ${roleLabelViewer(player)}</td>
                                     <td><strong>₹${(player.sellingPrice || 50000).toLocaleString('en-IN')}</strong></td>
                                 </tr>
                             `).join('')}
@@ -640,16 +652,7 @@
             const player = auctionData.player;
             const currentAuction = document.getElementById('currentAuction');
             
-            const typeIcons = {
-                'Type A': '★★★★★',
-                'Type B': '★★★★',
-                'Type C': '★★★',
-                'Batter': '🏏',
-                'Bowler': '⚡',
-                'All-Rounder': '⭐'
-            };
-
-            const playerType = (player.type || 'batter').toLowerCase().replace(/\s+/g, '-');
+            const playerType = tierSlugViewer(player);
             const basePrice = player.basePrice || 50000;
 
             currentAuction.innerHTML = `
@@ -666,7 +669,7 @@
                     <div class="player-name">${player.name || 'Unknown Player'}</div>
                     
                     <div class="player-type type-${playerType}">
-                        ${typeIcons[player.type] || '⚽'} ${player.type || 'Player'}
+                        ${starsForViewerPlayer(player)} ${roleLabelViewer(player)}
                     </div>
 
                     <div class="base-price">

@@ -2009,13 +2009,42 @@
             }
         }
 
+        function getPlayerTierRank(p) {
+            const r = Number(p && p.rating);
+            if (r === 5) return 1;
+            if (r === 4) return 2;
+            if (r === 3) return 3;
+            return getAuctionTypeRank(p && p.type);
+        }
+
         function orderAuctionQueueByTypeTier(players) {
             const buckets = [[], [], [], []];
             players.forEach(p => {
-                buckets[getAuctionTypeRank(p.type) - 1].push(p);
+                buckets[getPlayerTierRank(p) - 1].push(p);
             });
             buckets.forEach(shuffleArray);
             return buckets.flat();
+        }
+
+        function starsForAuctionPlayer(p) {
+            const r = Number(p && p.rating);
+            if (r === 5) return '★★★★★';
+            if (r === 4) return '★★★★';
+            if (r === 3) return '★★★';
+            const ic = { 'Type A': '★★★★★', 'Type B': '★★★★', 'Type C': '★★★', 'Batter': '🏏', 'Bowler': '⚡', 'All-Rounder': '⭐' };
+            return ic[p && p.type] || '⚽';
+        }
+        function roleLabelAuction(p) {
+            const t = (p && p.type) || '';
+            if (['Type A', 'Type B', 'Type C'].includes(t)) return t;
+            return t || 'Player';
+        }
+        function tierSlugAuction(p) {
+            const r = Number(p && p.rating);
+            if (r === 5) return 'type-a';
+            if (r === 4) return 'type-b';
+            if (r === 3) return 'type-c';
+            return (p.type || 'batter').toLowerCase().replace(/\s+/g, '-');
         }
 
         // Show next player in queue
@@ -2068,22 +2097,12 @@
         function markAsSold() {
             if (!currentPlayer) return;
 
-            // Show player info in popup
-            const typeIcons = {
-                'Type A': '★★★★★',
-                'Type B': '★★★★',
-                'Type C': '★★★',
-                'Batter': '🏏',
-                'Bowler': '⚡',
-                'All-Rounder': '⭐'
-            };
-
             const basePrice = currentPlayer.basePrice || 50000;
 
             selectedPlayerInfo.innerHTML = `
                 <strong>${currentPlayer.name}</strong><br>
                 <span style="font-size: 16px; color: #666;">
-                    ${typeIcons[currentPlayer.type] || '⚽'} ${currentPlayer.type}
+                    ${starsForAuctionPlayer(currentPlayer)} ${roleLabelAuction(currentPlayer)}
                 </span>
             `;
 
@@ -2310,21 +2329,12 @@
                     </div>
                 `;
             } else {
-                const typeIcons = {
-                    'Type A': '★★★★★',
-                    'Type B': '★★★★',
-                    'Type C': '★★★',
-                    'Batter': '🏏',
-                    'Bowler': '⚡',
-                    'All-Rounder': '⭐'
-                };
-                
                 teamDetailsContent.innerHTML = `
                     <table class="players-table">
                         <thead>
                             <tr>
                                 <th>Player</th>
-                                <th>Category</th>
+                                <th>Rating / role</th>
                                 <th>Amount</th>
                                 <th>Action</th>
                             </tr>
@@ -2333,7 +2343,7 @@
                             ${teamPlayers.map((player, index) => `
                                 <tr>
                                     <td><strong>${index + 1}. ${player.name}</strong></td>
-                                    <td>${typeIcons[player.type] || '⚽'} ${player.type}</td>
+                                    <td>${starsForAuctionPlayer(player)} ${roleLabelAuction(player)}</td>
                                     <td><strong>₹${(player.sellingPrice || 50000).toLocaleString('en-IN')}</strong></td>
                                     <td>
                                         <button class="remove-player-btn" onclick="removePlayerFromTeam('${teamName}', '${player.id}')">
@@ -2369,13 +2379,14 @@
             }
             
             // Create CSV content
-            let csv = 'Player,Category,Amount\n';
+            let csv = 'Player,Rating,Role,Amount\n';
             
             teamPlayers.forEach(player => {
                 const name = player.name.replace(/,/g, ''); // Remove commas from name
-                const category = player.type;
+                const rating = (player.rating != null && player.rating !== '') ? player.rating : '';
+                const role = String(player.type || '').replace(/,/g, '');
                 const amount = player.sellingPrice || 50000;
-                csv += `${name},${category},${amount}\n`;
+                csv += `${name},${rating},${role},${amount}\n`;
             });
             
             // Create blob and download
@@ -2793,16 +2804,7 @@
 
         // Display selected player
         function displayPlayer(player) {
-            const typeIcons = {
-                'Type A': '★★★★★',
-                'Type B': '★★★★',
-                'Type C': '★★★',
-                'Batter': '🏏',
-                'Bowler': '⚡',
-                'All-Rounder': '⭐'
-            };
-
-            const playerType = (player.type || 'batter').toLowerCase().replace(/\s+/g, '-');
+            const playerType = tierSlugAuction(player);
             const basePrice = player.basePrice || 50000;
 
             auctionDisplay.innerHTML = `
@@ -2817,7 +2819,7 @@
                     <div class="player-name-large">${player.name || 'Unknown Player'}</div>
                     
                     <div class="player-type-large type-${playerType}">
-                        ${typeIcons[player.type] || '⚽'} ${player.type || 'Player'}
+                        ${starsForAuctionPlayer(player)} ${roleLabelAuction(player)}
                     </div>
 
                     <div class="base-price-section">

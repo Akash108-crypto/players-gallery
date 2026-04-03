@@ -660,7 +660,8 @@
                 const query = searchQuery.toLowerCase();
                 filteredPlayers = players.filter(player => 
                     player.name.toLowerCase().includes(query) ||
-                    player.type.toLowerCase().includes(query) ||
+                    (player.type && player.type.toLowerCase().includes(query)) ||
+                    String(player.rating || '').includes(query) ||
                     (player.email && player.email.toLowerCase().includes(query)) ||
                     (player.mobile && player.mobile.includes(query))
                 );
@@ -905,17 +906,30 @@
                 return;
             }
 
-            const typeIcons = {
-                'Type A': '★★★★★',
-                'Type B': '★★★★',
-                'Type C': '★★★',
-                'Batter': '🏏',
-                'Bowler': '⚡',
-                'All-Rounder': '⭐'
-            };
+            function starsForPlayer(p) {
+                const r = Number(p && p.rating);
+                if (r === 5) return '★★★★★';
+                if (r === 4) return '★★★★';
+                if (r === 3) return '★★★';
+                const ic = { 'Type A': '★★★★★', 'Type B': '★★★★', 'Type C': '★★★', 'Batter': '🏏', 'Bowler': '⚡', 'All-Rounder': '⭐' };
+                return ic[p && p.type] || '⚽';
+            }
+            function roleLabelGallery(p) {
+                const t = (p && p.type) || '';
+                if (['Type A', 'Type B', 'Type C'].includes(t)) return t;
+                return t || 'Player';
+            }
+            function tierSlugGallery(p) {
+                const r = Number(p && p.rating);
+                if (r === 5) return 'type-a';
+                if (r === 4) return 'type-b';
+                if (r === 3) return 'type-c';
+                return (p.type || 'batter').toLowerCase().replace(/\s+/g, '-');
+            }
 
             playersGrid.innerHTML = filteredPlayers.map(player => {
-                const playerType = (player.type || 'batter').toLowerCase().replace(/\s+/g, '-');
+                const playerType = tierSlugGallery(player);
+                const badgeText = starsForPlayer(player) + ' ' + roleLabelGallery(player);
                 
                 return `
                     <div class="player-card">
@@ -925,7 +939,7 @@
                         }
                         <div class="player-name">${player.name || 'Unknown Player'}</div>
                         <div class="player-type type-${playerType}">
-                            ${typeIcons[player.type] || '⚽'} ${player.type || 'Player'}
+                            ${badgeText}
                         </div>
                         ${player.email ? `
                             <div class="player-email">

@@ -375,14 +375,23 @@
             </div>
 
             <div class="form-group">
+                <label for="playerRating">
+                    Player rating <span class="required">*</span>
+                </label>
+                <select id="playerRating" required>
+                    <option value="">Select rating (5 / 4 / 3)</option>
+                    <option value="5">5 — ★★★★★</option>
+                    <option value="4">4 — ★★★★</option>
+                    <option value="3">3 — ★★★</option>
+                </select>
+            </div>
+
+            <div class="form-group">
                 <label for="playerType">
-                    Player Type <span class="required">*</span>
+                    Role <span class="required">*</span>
                 </label>
                 <select id="playerType" required>
-                    <option value="">Select player type</option>
-                    <option value="Type A">Type A ★★★★★</option>
-                    <option value="Type B">Type B ★★★★</option>
-                    <option value="Type C">Type C ★★★</option>
+                    <option value="">Select role</option>
                     <option value="Batter">🏏 Batter</option>
                     <option value="Bowler">⚡ Bowler</option>
                     <option value="All-Rounder">⭐ All-Rounder</option>
@@ -485,6 +494,7 @@
         let currentImageData = null;
 
         const playerNameInput = document.getElementById('playerName');
+        const playerRatingSelect = document.getElementById('playerRating');
         const playerTypeSelect = document.getElementById('playerType');
         const playerEmailInput = document.getElementById('playerEmail');
         const playerMobileInput = document.getElementById('playerMobile');
@@ -548,6 +558,7 @@
             e.preventDefault();
             
             const name = playerNameInput.value.trim();
+            const ratingStr = playerRatingSelect.value;
             const type = playerTypeSelect.value;
             const email = playerEmailInput.value.trim();
             const mobile = playerMobileInput.value.trim();
@@ -557,8 +568,13 @@
                 return;
             }
 
+            if (!ratingStr) {
+                alert('Please select player rating');
+                return;
+            }
+
             if (!type) {
-                alert('Please select player type');
+                alert('Please select role');
                 return;
             }
 
@@ -593,6 +609,7 @@
                 const player = {
                     id: playerId,
                     name: name,
+                    rating: Number(ratingStr),
                     type: type,
                     email: email,
                     mobile: mobile,
@@ -605,18 +622,13 @@
                 await database.ref('players/' + playerId).set(player);
 
                 // Show player details in popup
-                const typeIcons = {
-                    'Type A': '★★★★★',
-                    'Type B': '★★★★',
-                    'Type C': '★★★',
-                    'Batter': '🏏',
-                    'Bowler': '⚡',
-                    'All-Rounder': '⭐'
-                };
+                const starStr = ratingStr === '5' ? '★★★★★' : ratingStr === '4' ? '★★★★' : '★★★';
+                const roleIcons = { 'Batter': '🏏', 'Bowler': '⚡', 'All-Rounder': '⭐' };
 
                 playerDetailsPopup.innerHTML = `
                     <p><strong>Name:</strong> ${name}</p>
-                    <p><strong>Type:</strong> ${typeIcons[type] || '⚽'} ${type}</p>
+                    <p><strong>Rating:</strong> ${starStr} (${ratingStr})</p>
+                    <p><strong>Role:</strong> ${roleIcons[type] || ''} ${type}</p>
                     <p><strong>Email:</strong> ${email}</p>
                     ${mobile ? `<p><strong>Mobile:</strong> ${mobile}</p>` : ''}
                 `;
