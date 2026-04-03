@@ -204,6 +204,15 @@
         .type-bowler { background: #17a2b8; color: white; }
         .type-all-rounder { background: #28a745; color: white; }
 
+        .type-type-a {
+            background: linear-gradient(135deg, #f7971e 0%, #ffd200 100%);
+            color: #1a1a1a;
+        }
+
+        .type-type-b { background: #5a67d8; color: white; }
+
+        .type-type-c { background: #38b2ac; color: white; }
+
         .base-price {
             background: #fff3cd;
             padding: 20px;
@@ -564,6 +573,9 @@
                 `;
             } else {
                 const typeIcons = {
+                    'Type A': '★★★★★',
+                    'Type B': '★★★★',
+                    'Type C': '★★★',
                     'Batter': '🏏',
                     'Bowler': '⚡',
                     'All-Rounder': '⭐'
@@ -629,12 +641,15 @@
             const currentAuction = document.getElementById('currentAuction');
             
             const typeIcons = {
+                'Type A': '★★★★★',
+                'Type B': '★★★★',
+                'Type C': '★★★',
                 'Batter': '🏏',
                 'Bowler': '⚡',
                 'All-Rounder': '⭐'
             };
 
-            const playerType = (player.type || 'batter').toLowerCase().replace(' ', '-').replace('all-rounder', 'all-rounder');
+            const playerType = (player.type || 'batter').toLowerCase().replace(/\s+/g, '-');
             const basePrice = player.basePrice || 50000;
 
             currentAuction.innerHTML = `

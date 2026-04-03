@@ -468,6 +468,9 @@
                 </label>
                 <select id="playerType" required>
                     <option value="">Select player type</option>
+                    <option value="Type A">Type A ★★★★★</option>
+                    <option value="Type B">Type B ★★★★</option>
+                    <option value="Type C">Type C ★★★</option>
                     <option value="Batter">🏏 Batter</option>
                     <option value="Bowler">⚡ Bowler</option>
                     <option value="All-Rounder">⭐ All-Rounder</option>
@@ -742,6 +745,9 @@
 
                     // Show player details in popup
                     const typeIcons = {
+                        'Type A': '★★★★★',
+                        'Type B': '★★★★',
+                        'Type C': '★★★',
                         'Batter': '🏏',
                         'Bowler': '⚡',
                         'All-Rounder': '⭐'
@@ -832,7 +838,10 @@
         }
 
         function normalizeType(t) {
-            const s = (t || '').toLowerCase();
+            const s = (t || '').toLowerCase().trim();
+            if (/^type\s*a\b/.test(s)) return 'Type A';
+            if (/^type\s*b\b/.test(s)) return 'Type B';
+            if (/^type\s*c\b/.test(s)) return 'Type C';
             if (s.includes('batter') || s === 'bat') return 'Batter';
             if (s.includes('bowler') || s === 'bowl') return 'Bowler';
             if (s.includes('all') || s.includes('rounder')) return 'All-Rounder';

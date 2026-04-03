@@ -392,6 +392,21 @@
             color: white;
         }
 
+        .type-type-a {
+            background: linear-gradient(135deg, #f7971e 0%, #ffd200 100%);
+            color: #1a1a1a;
+        }
+
+        .type-type-b {
+            background: #5a67d8;
+            color: white;
+        }
+
+        .type-type-c {
+            background: #38b2ac;
+            color: white;
+        }
+
         .player-email {
             font-size: 14px;
             color: #666;
@@ -891,13 +906,16 @@
             }
 
             const typeIcons = {
+                'Type A': '★★★★★',
+                'Type B': '★★★★',
+                'Type C': '★★★',
                 'Batter': '🏏',
                 'Bowler': '⚡',
                 'All-Rounder': '⭐'
             };
 
             playersGrid.innerHTML = filteredPlayers.map(player => {
-                const playerType = (player.type || 'batter').toLowerCase().replace(' ', '-').replace('all-rounder', 'all-rounder');
+                const playerType = (player.type || 'batter').toLowerCase().replace(/\s+/g, '-');
                 
                 return `
                     <div class="player-card">

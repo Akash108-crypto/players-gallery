@@ -359,6 +359,21 @@
             color: white;
         }
 
+        .type-type-a {
+            background: linear-gradient(135deg, #f7971e 0%, #ffd200 100%);
+            color: #1a1a1a;
+        }
+
+        .type-type-b {
+            background: #5a67d8;
+            color: white;
+        }
+
+        .type-type-c {
+            background: #38b2ac;
+            color: white;
+        }
+
         .base-price-section {
             background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
             padding: 30px;
@@ -1402,7 +1417,7 @@
     <div class="container">
         <div class="header">
             <h1>🎯 Player Auction</h1>
-            <p>Select a random player for auction</p>
+            <p>Players auctioned in order: Type A (5★), then B (4★), then C (3★), then other types. Anyone marked unsold once comes back in one batch at the end.</p>
         </div>
 
         <!-- Team Setup: shown on first load so you can set team names -->
@@ -1478,7 +1493,7 @@
             <div class="no-player">
                 <div class="no-player-icon">🏏</div>
                 <h3>Ready to Start Auction</h3>
-                <p>Click "Start Auction" to begin selecting players randomly</p>
+                <p>Click "Start Auction" to begin. Order: Type A (5★) → Type B (4★) → Type C (3★) → other types (shuffled within each group). First-time unsold players are grouped and auctioned after everyone still on their first pass.</p>
             </div>
         </div>
 
@@ -1610,6 +1625,9 @@
 
         let allPlayers = [];
         let playerQueue = [];
+        /** First-time unsold players: all processed together after main queue is empty */
+        let unsoldReturnQueue = [];
+        let unsoldBatchSorted = false;
         let currentPlayer = null;
         let soldPlayers = [];
         let unsoldPlayers = [];
@@ -1919,11 +1937,13 @@
                 isAuctionActive = true;
                 
                 // Only include players that haven't been sold yet
-                playerQueue = allPlayers.filter(p => p.auctionStatus !== 'sold');
+                const available = allPlayers.filter(p => p.auctionStatus !== 'sold');
+                playerQueue = orderAuctionQueueByTypeTier(available);
+                unsoldReturnQueue = [];
+                unsoldBatchSorted = false;
                 console.log('📊 Available for auction:', playerQueue.length, 'players (excluding', soldPlayers.length, 'sold)');
-                
-                shuffleArray(playerQueue); // Randomize initial order
-                console.log('🔀 Player queue shuffled');
+                console.log('📊 Queue order: Type A (5★) → Type B (4★) → Type C (3★) → other types (shuffled within each group)');
+                console.log('📊 Once-unsold players are grouped and auctioned after everyone still on their first pass');
                 
                 // Unsold players list
                 unsoldPlayers = [];
@@ -1979,14 +1999,38 @@
             }
         }
 
+        /** 1 = Type A (5★) first, then B, C, then Batter/Bowler/All-Rounder / unknown */
+        function getAuctionTypeRank(type) {
+            switch ((type || '').trim()) {
+                case 'Type A': return 1;
+                case 'Type B': return 2;
+                case 'Type C': return 3;
+                default: return 4;
+            }
+        }
+
+        function orderAuctionQueueByTypeTier(players) {
+            const buckets = [[], [], [], []];
+            players.forEach(p => {
+                buckets[getAuctionTypeRank(p.type) - 1].push(p);
+            });
+            buckets.forEach(shuffleArray);
+            return buckets.flat();
+        }
+
         // Show next player in queue
         async function showNextPlayer() {
-            if (playerQueue.length === 0) {
+            if (playerQueue.length === 0 && unsoldReturnQueue.length === 0) {
                 // Auction complete
                 showAuctionComplete();
                 // Clear current auction player from Firebase
                 await database.ref('currentAuction').remove();
                 return;
+            }
+
+            if (playerQueue.length === 0 && unsoldReturnQueue.length > 0 && !unsoldBatchSorted) {
+                unsoldReturnQueue = orderAuctionQueueByTypeTier(unsoldReturnQueue);
+                unsoldBatchSorted = true;
             }
 
             // Show loading
@@ -2000,8 +2044,12 @@
             // Add suspense
             await new Promise(resolve => setTimeout(resolve, 1000));
 
-            // Get next player
-            currentPlayer = playerQueue.shift();
+            // Main queue first; then everyone who was marked unsold once (batch at end)
+            if (playerQueue.length > 0) {
+                currentPlayer = playerQueue.shift();
+            } else {
+                currentPlayer = unsoldReturnQueue.shift();
+            }
             
             // Save current player to Firebase for viewers to see
             await database.ref('currentAuction').set({
@@ -2022,6 +2070,9 @@
 
             // Show player info in popup
             const typeIcons = {
+                'Type A': '★★★★★',
+                'Type B': '★★★★',
+                'Type C': '★★★',
                 'Batter': '🏏',
                 'Bowler': '⚡',
                 'All-Rounder': '⭐'
@@ -2260,6 +2311,9 @@
                 `;
             } else {
                 const typeIcons = {
+                    'Type A': '★★★★★',
+                    'Type B': '★★★★',
+                    'Type C': '★★★',
                     'Batter': '🏏',
                     'Bowler': '⚡',
                     'All-Rounder': '⭐'
@@ -2510,8 +2564,8 @@
                     unsoldAt: new Date().toISOString()
                 });
             } else {
-                // First time unsold - add to end of queue
-                playerQueue.push(currentPlayer);
+                // First time unsold — batch with other once-unsold players after main queue finishes
+                unsoldReturnQueue.push(currentPlayer);
                 processedPlayerIds.add(currentPlayer.id);
             }
 
@@ -2554,7 +2608,7 @@
             
             const description = isSecondTime
                 ? 'This player has been marked as unsold for the second time.'
-                : 'This player will return at the end of the auction queue.';
+                : 'This player will come back in one batch at the end, after everyone still on their first pass (same type order: 5★, then 4★, then 3★, then others).';
 
             auctionDisplay.innerHTML = `
                 <div class="player-unsold-message">
@@ -2583,7 +2637,7 @@
             const total = allPlayers.length;
             const sold = soldPlayers.length;
             const unsold = unsoldPlayers.length;
-            const remaining = playerQueue.length;
+            const remaining = playerQueue.length + unsoldReturnQueue.length;
             const processed = sold + unsold;
             const percentage = total > 0 ? Math.round((processed / total) * 100) : 0;
 
@@ -2693,6 +2747,8 @@
         async function resetAuction() {
             isAuctionActive = false;
             playerQueue = [];
+            unsoldReturnQueue = [];
+            unsoldBatchSorted = false;
             currentPlayer = null;
             soldPlayers = [];
             unsoldPlayers = [];
@@ -2722,7 +2778,7 @@
                 <div class="no-player">
                     <div class="no-player-icon">🏏</div>
                     <h3>Ready to Start Auction</h3>
-                    <p>Click "Start Auction" to begin selecting players randomly</p>
+                    <p>Click "Start Auction" to begin. Order: Type A (5★) → Type B (4★) → Type C (3★) → other types (shuffled within each group). First-time unsold players are grouped and auctioned after everyone still on their first pass.</p>
                 </div>
             `;
         }
@@ -2738,12 +2794,15 @@
         // Display selected player
         function displayPlayer(player) {
             const typeIcons = {
+                'Type A': '★★★★★',
+                'Type B': '★★★★',
+                'Type C': '★★★',
                 'Batter': '🏏',
                 'Bowler': '⚡',
                 'All-Rounder': '⭐'
             };
 
-            const playerType = (player.type || 'batter').toLowerCase().replace(' ', '-').replace('all-rounder', 'all-rounder');
+            const playerType = (player.type || 'batter').toLowerCase().replace(/\s+/g, '-');
             const basePrice = player.basePrice || 50000;
 
             auctionDisplay.innerHTML = `
@@ -2810,7 +2869,7 @@
                         <p><strong>💡 Auction Info:</strong></p>
                         <p>• Base Price: ₹${basePrice.toLocaleString('en-IN')}</p>
                         <p>• Total Players: ${allPlayers.length}</p>
-                        <p>• Remaining in Queue: ${playerQueue.length}</p>
+                        <p>• Remaining in Queue: ${playerQueue.length + unsoldReturnQueue.length}</p>
                         ${processedPlayerIds.has(player.id) ? '<p>• ⚠️ This player was unsold before (Last chance!)</p>' : ''}
                     </div>
 
@@ -2920,7 +2979,7 @@
 
         // Prevent accidental page close during auction
         window.addEventListener('beforeunload', (e) => {
-            if (isAuctionActive && playerQueue.length > 0) {
+            if (isAuctionActive && (playerQueue.length > 0 || unsoldReturnQueue.length > 0)) {
                 e.preventDefault();
                 e.returnValue = '';
             }
