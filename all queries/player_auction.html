@@ -920,10 +920,51 @@
 
         .team-setup-row {
             display: grid;
-            grid-template-columns: 1fr 1fr 80px;
+            grid-template-columns: 1fr 1fr min-content;
             gap: 12px;
-            align-items: center;
-            margin-bottom: 12px;
+            align-items: end;
+            margin-bottom: 16px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .team-setup-logo-block {
+            grid-column: 1 / -1;
+            margin-top: 4px;
+        }
+
+        .team-setup-logo-block label {
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .team-setup-logo-block .team-logo-url {
+            width: 100%;
+            margin-bottom: 8px;
+        }
+
+        .team-setup-logo-block .team-logo-file {
+            font-size: 13px;
+            margin-bottom: 6px;
+        }
+
+        .team-logo-preview {
+            margin-top: 6px;
+            min-height: 0;
+        }
+
+        .team-logo-preview .logo-prev-thumb {
+            max-width: 72px;
+            max-height: 72px;
+            border-radius: 8px;
+            object-fit: contain;
+            border: 2px solid #e0e0e0;
+        }
+
+        .team-setup-logo-hint {
+            font-size: 11px;
+            color: #888;
+            margin-top: 4px;
         }
 
         .team-setup-row label {
@@ -1210,6 +1251,42 @@
 
         .team-btn .team-icon {
             font-size: 32px;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .team-logo-img {
+            object-fit: contain;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+        .team-logo-img.team-logo-btn {
+            width: 40px;
+            height: 40px;
+        }
+
+        .team-logo-img.team-logo-summary {
+            width: 48px;
+            height: 48px;
+        }
+
+        .team-logo-img.team-logo-header {
+            width: 44px;
+            height: 44px;
+        }
+
+        .team-logo-img.team-logo-tiny {
+            width: 26px;
+            height: 26px;
+            vertical-align: middle;
+            margin-right: 6px;
+        }
+
+        .team-emoji-mark {
+            display: inline-block;
         }
 
         .team-btn .team-name {
@@ -1316,6 +1393,10 @@
         .team-summary-card .team-icon-large {
             font-size: 40px;
             margin-bottom: 10px;
+            min-height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .team-summary-card .team-name-large {
@@ -1424,7 +1505,7 @@
         <div class="team-setup-overlay" id="teamSetupOverlay">
             <div class="team-setup-popup">
                 <h2>🏏 Set up teams</h2>
-                <p>Set the <strong>number of teams</strong> and <strong>team names</strong> (and optional owners). Use &quot;+ Add team&quot; / &quot;Remove&quot; to change how many teams. You can open this again anytime with <strong>Edit teams</strong>.</p>
+                <p>Set the <strong>number of teams</strong>, <strong>team names</strong>, optional <strong>owners</strong>, and optional <strong>logos</strong> (paste an image URL or upload a small image). Emoji is the fallback if no logo loads. Use &quot;+ Add team&quot; / &quot;Remove&quot; to change how many teams. Open again anytime with <strong>Edit teams</strong>.</p>
                 <div id="teamSetupRows"></div>
                 <div class="team-setup-actions">
                     <button type="button" class="team-setup-add" onclick="addTeamSetupRow()">+ Add team</button>
@@ -1510,7 +1591,7 @@
         <div class="team-details-popup">
             <div class="team-details-header">
                 <h2>
-                    <span id="teamDetailsIcon">🔴</span>
+                    <span id="teamDetailsIcon" class="team-details-icon-slot">🔴</span>
                     <span id="teamDetailsName">Team A</span>
                 </h2>
                 <button class="close-details-btn" onclick="closeTeamDetails()">✕ Close</button>
@@ -1636,11 +1717,30 @@
         const INITIAL_PURSE = 10000000; // 1 crore per team
         const MAX_PLAYERS_PER_TEAM = 10; // Each team must buy 10 players
         const TEAM_ICONS_OPTIONS = ['🐯', '🐆', '⚔️', '🐍', '🔱', '⚡', '🦁', '🐻', '🦅', '🏹'];
-        let teamConfig = []; // Loaded from Firebase config/teams: [{ name, owner, icon }, ...]
+        let teamConfig = []; // Loaded from Firebase config/teams: [{ name, owner, icon, logo? }, ...]
         let teams = {};
         let teamPurses = {};
         let teamOwners = {};
         let teamIcons = {};
+        let teamLogos = {}; // teamName -> URL or data URL
+
+        function getImageSrc(url) {
+            if (!url) return '';
+            const m = url.match(/drive\.google\.com\/open\?id=([a-zA-Z0-9_-]+)/) || url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/) || url.match(/uc\?export=view&id=([a-zA-Z0-9_-]+)/) || url.match(/thumbnail\?id=([a-zA-Z0-9_-]+)/) || url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+            if (m) return 'https://drive.google.com/thumbnail?id=' + m[1] + '&sz=w800';
+            return url;
+        }
+
+        function teamBrandMarkup(teamName, imgClass) {
+            const logo = (teamLogos[teamName] || '').trim();
+            const emoji = teamIcons[teamName] || '🔴';
+            if (!logo) {
+                return '<span class="team-emoji-mark">' + emoji + '</span>';
+            }
+            const src = getImageSrc(logo);
+            const esc = src.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+            return '<span class="team-brand-wrap"><img class="team-logo-img ' + imgClass + '" src="' + esc + '" alt="" referrerpolicy="no-referrer" onerror="this.style.display=\'none\';var n=this.nextElementSibling;if(n)n.style.display=\'inline\'"><span class="team-emoji-mark" style="display:none">' + emoji + '</span></span>';
+        }
 
         const auctionDisplay = document.getElementById('auctionDisplay');
         const auctionProgress = document.getElementById('auctionProgress');
@@ -1673,6 +1773,7 @@
                 teamPurses[name] = INITIAL_PURSE;
                 teamOwners[name] = t.owner || '';
                 teamIcons[name] = t.icon || '🔴';
+                teamLogos[name] = (t.logo || '').trim();
             });
         }
 
@@ -1681,7 +1782,7 @@
             if (!row) return;
             row.innerHTML = Object.keys(teams).map(teamName => `
                 <div class="team-summary-card" data-team-name="${teamName.replace(/"/g, '&quot;')}" onclick="showTeamDetails('${teamName.replace(/'/g, "\\'")}')">
-                    <div class="team-icon-large">${teamIcons[teamName] || '🔴'}</div>
+                    <div class="team-icon-large">${teamBrandMarkup(teamName, 'team-logo-summary')}</div>
                     <div class="team-name-large">${teamName}</div>
                     ${teamOwners[teamName] ? `<div style="font-size: 11px; color: #666; margin-top: 2px;">${teamOwners[teamName]}</div>` : ''}
                     <div class="team-players-count" data-team-count>0/10</div>
@@ -1704,22 +1805,96 @@
                         // No config: show setup with 6 default empty rows
                         teamConfig = [];
                         const defaults = ['Team 1', 'Team 2', 'Team 3', 'Team 4', 'Team 5', 'Team 6'];
-                        defaults.forEach((name, i) => teamConfig.push({ name, owner: '', icon: TEAM_ICONS_OPTIONS[i % TEAM_ICONS_OPTIONS.length] }));
+                        defaults.forEach((name, i) => teamConfig.push({ name, owner: '', icon: TEAM_ICONS_OPTIONS[i % TEAM_ICONS_OPTIONS.length], logo: '' }));
                         showTeamSetupForm();
                     }
                     resolve();
                 }, (err) => {
                     console.warn('Could not load team config', err);
-                    teamConfig = [{ name: 'Team 1', owner: '', icon: '🐯' }, { name: 'Team 2', owner: '', icon: '🐆' }];
+                    teamConfig = [{ name: 'Team 1', owner: '', icon: '🐯', logo: '' }, { name: 'Team 2', owner: '', icon: '🐆', logo: '' }];
                     showTeamSetupForm();
                     resolve();
                 });
             });
         }
 
+        function compressTeamLogoFile(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = new Image();
+                    img.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        const max = 200;
+                        let w = img.width;
+                        let h = img.height;
+                        if (w > h) {
+                            if (w > max) { h = (h * max) / w; w = max; }
+                        } else {
+                            if (h > max) { w = (w * max) / h; h = max; }
+                        }
+                        canvas.width = w;
+                        canvas.height = h;
+                        ctx.drawImage(img, 0, 0, w, h);
+                        resolve(canvas.toDataURL('image/jpeg', 0.82));
+                    };
+                    img.onerror = reject;
+                    img.src = e.target.result;
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function wireUpTeamLogoInputs(container) {
+            container.querySelectorAll('.team-setup-row').forEach((row, i) => {
+                const file = row.querySelector('.team-logo-file');
+                const hidden = row.querySelector('.team-logo-data');
+                const urlIn = row.querySelector('.team-logo-url');
+                const preview = row.querySelector('.team-logo-preview');
+                const t = teamConfig[i];
+                if (t && t.logo && t.logo.startsWith('data:image') && hidden) {
+                    hidden.value = t.logo;
+                    if (preview) preview.innerHTML = '<img class="logo-prev-thumb" src="' + t.logo.replace(/"/g, '&quot;') + '" alt="Preview">';
+                }
+                if (!file || !hidden || !urlIn) return;
+                file.addEventListener('change', async function() {
+                    const f = this.files[0];
+                    if (!f) return;
+                    if (f.size > 2 * 1024 * 1024) {
+                        alert('Image is too large. Use a file under 2 MB or paste an image link instead.');
+                        this.value = '';
+                        return;
+                    }
+                    try {
+                        const dataUrl = await compressTeamLogoFile(f);
+                        if (dataUrl.length > 450000) {
+                            alert('Image is still too large after compressing. Paste a hosted image URL (e.g. Google Drive link) instead.');
+                            this.value = '';
+                            return;
+                        }
+                        hidden.value = dataUrl;
+                        urlIn.value = '';
+                        if (preview) preview.innerHTML = '<img class="logo-prev-thumb" src="' + dataUrl.replace(/"/g, '&quot;') + '" alt="Preview">';
+                    } catch (err) {
+                        console.error(err);
+                        alert('Could not read that image.');
+                    }
+                    this.value = '';
+                });
+                urlIn.addEventListener('input', function() {
+                    if (this.value.trim()) hidden.value = '';
+                });
+            });
+        }
+
         function showTeamSetupForm() {
             const container = document.getElementById('teamSetupRows');
-            container.innerHTML = teamConfig.map((t, i) => `
+            container.innerHTML = teamConfig.map((t, i) => {
+                const logoVal = t.logo || '';
+                const urlOnly = logoVal && !logoVal.startsWith('data:') ? logoVal.replace(/"/g, '&quot;') : '';
+                return `
                 <div class="team-setup-row" data-row-index="${i}">
                     <div>
                         <label>Team name</label>
@@ -1729,17 +1904,29 @@
                         <label>Owner (optional)</label>
                         <input type="text" class="team-owner-input" value="${(t.owner || '').replace(/"/g, '&quot;')}" placeholder="e.g. John">
                     </div>
-                    <div style="display: flex; align-items: flex-end; gap: 8px;">
-                        <select class="team-icon-select">${TEAM_ICONS_OPTIONS.map(ic => `<option value="${ic}" ${t.icon === ic ? 'selected' : ''}>${ic}</option>`).join('')}</select>
+                    <div style="display: flex; align-items: flex-end; gap: 8px; flex-wrap: wrap;">
+                        <div>
+                            <label>Emoji fallback</label>
+                            <select class="team-icon-select">${TEAM_ICONS_OPTIONS.map(ic => `<option value="${ic}" ${t.icon === ic ? 'selected' : ''}>${ic}</option>`).join('')}</select>
+                        </div>
                         <button type="button" class="team-setup-remove" onclick="removeTeamSetupRow(${i})">Remove</button>
                     </div>
-                </div>
-            `).join('');
+                    <div class="team-setup-logo-block">
+                        <label>Team logo (optional)</label>
+                        <input type="url" class="team-logo-url" value="${urlOnly}" placeholder="Image URL (https://… or Google Drive share link)">
+                        <input type="file" class="team-logo-file" accept="image/*">
+                        <input type="hidden" class="team-logo-data" value="">
+                        <div class="team-logo-preview"></div>
+                        <p class="team-setup-logo-hint">Paste a link or upload a small PNG/JPG. If the image fails to load, the emoji above is shown.</p>
+                    </div>
+                </div>`;
+            }).join('');
+            wireUpTeamLogoInputs(container);
             document.getElementById('teamSetupOverlay').classList.remove('hidden');
         }
 
         function addTeamSetupRow() {
-            teamConfig.push({ name: 'New Team', owner: '', icon: TEAM_ICONS_OPTIONS[teamConfig.length % TEAM_ICONS_OPTIONS.length] });
+            teamConfig.push({ name: 'New Team', owner: '', icon: TEAM_ICONS_OPTIONS[teamConfig.length % TEAM_ICONS_OPTIONS.length], logo: '' });
             showTeamSetupForm();
         }
 
@@ -1760,6 +1947,8 @@
                 const nameInput = row.querySelector('.team-name-input');
                 const ownerInput = row.querySelector('.team-owner-input');
                 const iconSelect = row.querySelector('.team-icon-select');
+                const logoUrlIn = row.querySelector('.team-logo-url');
+                const logoData = row.querySelector('.team-logo-data');
                 const name = (nameInput && nameInput.value || '').trim();
                 if (!name) return;
                 if (names.has(name)) {
@@ -1767,10 +1956,17 @@
                     return;
                 }
                 names.add(name);
+                let logo = '';
+                if (logoData && logoData.value && logoData.value.startsWith('data:image')) {
+                    logo = logoData.value.trim();
+                } else if (logoUrlIn && logoUrlIn.value.trim()) {
+                    logo = logoUrlIn.value.trim();
+                }
                 newConfig.push({
                     name,
                     owner: (ownerInput && ownerInput.value || '').trim(),
-                    icon: (iconSelect && iconSelect.value) || '🔴'
+                    icon: (iconSelect && iconSelect.value) || '🔴',
+                    logo
                 });
             });
             if (newConfig.length < 2) {
@@ -1790,8 +1986,8 @@
         function openTeamSetupForEdit() {
             if (!teamConfig || teamConfig.length === 0) {
                 teamConfig = [
-                    { name: 'Team 1', owner: '', icon: '🐯' },
-                    { name: 'Team 2', owner: '', icon: '🐆' }
+                    { name: 'Team 1', owner: '', icon: '🐯', logo: '' },
+                    { name: 'Team 2', owner: '', icon: '🐆', logo: '' }
                 ];
             }
             showTeamSetupForm();
@@ -2149,7 +2345,7 @@
                     <button class="team-btn ${isDisabled ? 'disabled' : ''}" 
                             onclick="${!isDisabled ? `assignPlayerToTeam('${teamName}')` : 'return false;'}"
                             ${isDisabled ? 'disabled' : ''}>
-                        <div class="team-icon">${teamIcons[teamName]}</div>
+                        <div class="team-icon">${teamBrandMarkup(teamName, 'team-logo-btn')}</div>
                         <div class="team-name">${teamName}</div>
                         ${ownerName ? `<div style="font-size: 12px; color: #666; margin-top: 2px;">Owner: ${ownerName}</div>` : ''}
                         <div class="team-count">${teamPlayers}/10 players</div>
@@ -2251,7 +2447,7 @@
                     <button class="team-btn ${isDisabled ? 'disabled' : ''}" 
                             onclick="${!isDisabled ? `assignPlayerToTeam('${teamName}')` : 'return false;'}"
                             ${isDisabled ? 'disabled' : ''}>
-                        <div class="team-icon">${teamIcons[teamName]}</div>
+                        <div class="team-icon">${teamBrandMarkup(teamName, 'team-logo-btn')}</div>
                         <div class="team-name">${teamName}</div>
                         ${ownerName ? `<div style="font-size: 12px; color: #666; margin-top: 2px;">Owner: ${ownerName}</div>` : ''}
                         <div class="team-count">${teamPlayers}/10 players</div>
@@ -2309,7 +2505,7 @@
             const remainingPurse = teamPurses[teamName];
             
             // Update header
-            document.getElementById('teamDetailsIcon').textContent = teamIcons[teamName];
+            document.getElementById('teamDetailsIcon').innerHTML = teamBrandMarkup(teamName, 'team-logo-header');
             document.getElementById('teamDetailsName').textContent = teamName;
             
             // Update stats
@@ -2729,7 +2925,7 @@
                             const isComplete = teamPlayers.length >= MAX_PLAYERS_PER_TEAM;
                             return `
                                 <div class="summary-item">
-                                    <span class="summary-label">${teamIcons[teamName]} ${teamName}:</span>
+                                    <span class="summary-label">${teamBrandMarkup(teamName, 'team-logo-tiny')} ${teamName}:</span>
                                     <span class="summary-value" style="color: ${isComplete ? '#28a745' : '#dc3545'}">
                                         ${teamPlayers.length}/${MAX_PLAYERS_PER_TEAM} players ${isComplete ? '✓' : '❌'} - 
                                         Spent: ₹${teamValue.toLocaleString('en-IN')} - 
@@ -2792,14 +2988,6 @@
                     <p>Click "Start Auction" to begin. Order: Type A (5★) → Type B (4★) → Type C (3★) → other types (shuffled within each group). First-time unsold players are grouped and auctioned after everyone still on their first pass.</p>
                 </div>
             `;
-        }
-
-        // Use embeddable URL for Google Drive images (thumbnail format works when embedding)
-        function getImageSrc(url) {
-            if (!url) return '';
-            const m = url.match(/drive\.google\.com\/open\?id=([a-zA-Z0-9_-]+)/) || url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/) || url.match(/uc\?export=view&id=([a-zA-Z0-9_-]+)/) || url.match(/thumbnail\?id=([a-zA-Z0-9_-]+)/) || url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-            if (m) return 'https://drive.google.com/thumbnail?id=' + m[1] + '&sz=w800';
-            return url;
         }
 
         // Display selected player
